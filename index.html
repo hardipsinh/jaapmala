@@ -351,8 +351,10 @@
         const itemsPerPage = 5;
         let onlineLogs = null; 
 
-        // Firebase references configuration
 
+
+
+		// જૂનો કોડ કાઢી નાખો અને આ નવો કોડ મૂકો
 const firebaseConfig = {
     apiKey: "AIzaSyDV37xDbxMBDwMyvTomA3DdFAgiUgyoPKE",
     authDomain: "jaap-39f6c.firebaseapp.com",
@@ -360,24 +362,20 @@ const firebaseConfig = {
     storageBucket: "jaap-39f6c.firebasestorage.app",
     messagingSenderId: "738357589391",
     appId: "1:738357589391:web:781ef5a50437c20498c7fa"
-  };
+};
 
-  // Initialize Firebase
- // const app = initializeApp(firebaseConfig);
+let db, auth, currentUser = null;
 
+        
 
-		
-        const appId = "1:738357589391:web:781ef5a50437c20498c7fa";
-        let db, auth, currentUser = null;
-
-        if (typeof firebaseConfig !== 'undefined' && firebaseConfig) {
-            try {
-                const config = JSON.parse(firebaseConfig);
-                const app = initializeApp(config);
-                auth = getAuth(app);
-                db = getFirestore(app);
-            } catch (err) { console.error("Firebase initialization failed: ", err); }
-        }
+		try {
+             const app = initializeApp(firebaseConfig); // અહીં JSON.parse કાઢી નાખ્યું
+              auth = getAuth(app);
+             db = getFirestore(app);
+        } catch (err) { 
+            console.error("Firebase initialization failed: ", err); 
+         }
+        
 
         // Authentication state routing
         if (auth) {
