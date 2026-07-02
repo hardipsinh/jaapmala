@@ -352,12 +352,27 @@
         let onlineLogs = null; 
 
         // Firebase references configuration
-        const appId = "rudraksh-mala-app";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDV37xDbxMBDwMyvTomA3DdFAgiUgyoPKE",
+    authDomain: "jaap-39f6c.firebaseapp.com",
+    projectId: "jaap-39f6c",
+    storageBucket: "jaap-39f6c.firebasestorage.app",
+    messagingSenderId: "738357589391",
+    appId: "1:738357589391:web:781ef5a50437c20498c7fa"
+  };
+
+  // Initialize Firebase
+ // const app = initializeApp(firebaseConfig);
+
+
+		
+        const appId = "1:738357589391:web:781ef5a50437c20498c7fa";
         let db, auth, currentUser = null;
 
-        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        if (typeof firebaseConfig !== 'undefined' && firebaseConfig) {
             try {
-                const config = JSON.parse(__firebase_config);
+                const config = JSON.parse(firebaseConfig);
                 const app = initializeApp(config);
                 auth = getAuth(app);
                 db = getFirestore(app);
