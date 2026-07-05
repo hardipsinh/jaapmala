@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat | Secure Decentralized Messenger</title>
+    <!-- Premium CSS/CDN Dependencies -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/bugout@latest/dist/bugout.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            --primary: #008069;
+            --primary-dark: #005c4b;
+            --primary-light: #e6f6ec;
+            --bg-body: #eae6df;
+            --bg-chat: #efeae2;
+            --bg-panel: #ffffff;
+            --bg-sidebar: #f0f2f5;
+            --msg-out: #d9fdd3;
+            --msg-in: #ffffff;
+            --text-main: #111b21;
+            --text-muted: #667781;
+            --border: #d1d7db;
+            --system-yellow: #ffe596;
+            --reply-bg: rgba(0, 0, 0, 0.05);
+            --danger: #ea0038;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background: linear-gradient(180deg, var(--primary) 127px, var(--bg-body) 127px);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Top-level Layout container */
+        #app {
+            width: 100%;
+            max-width: 1600px;
+            height: 100vh;
+            display: flex;
+            background: var(--bg-panel);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        @media (min-width: 1440px) {
+            #app {
+                height: 95vh;
+                width: 95vw;
+                border-radius: 12px;
+                border: 1px solid rgba(0, 0, 0, 0.05);
+            }
+        }
+
+        /* SIDEBAR PANELS */
+        #sidebar {
+            width: 420px;
+            min-width: 360px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+
+        .sb-header {
+            background: var(--bg-sidebar);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .username-input {
+            border: none;
+            background: transparent;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-main);
+            width: 100%;
+            outline: none;
+            padding: 4px;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .username-input:focus {
+            border-color: var(--primary);
+        }
+
+        .sb-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* UI CARDS */
+        .card {
+            background: var(--bg-sidebar);
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+        }
+
+        .card h3 {
+            font-size: 0.95rem;
+            color: var(--primary-dark);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        /* Segmented tab controllers */
+        .segmented-tabs {
+            display: flex;
+            background: #e9edef;
+            border-radius: 8px;
+            padding: 3px;
+            margin-bottom: 12px;
+        }
+
+        .seg-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: background 0.2s, color 0.2s;
+            user-select: none;
+        }
+
+        .seg-tab.active {
+            background: #ffffff;
+            color: var(--primary-dark);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            outline: none;
+            background: #ffffff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 128, 105, 0.1);
+        }
+
+        textarea {
+            resize: none;
+            height: 65px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            line-height: 1.3;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.15s ease, transform 0.1s;
+            user-select: none;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn.outline {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn.outline:hover {
+            background: rgba(0, 128, 105, 0.05);
+        }
+
+        .copy-badge-btn {
+            position: absolute;
+            right: 8px;
+            top: 25px;
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .copy-badge-btn:hover {
+            background: #e1e5e8;
+            color: var(--text-main);
+        }
+
+        /* MAIN CHAT WINDOW */
+        #chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-chat);
+            position: relative;
+            height: 100%;
+        }
+
+        /* Not Connected Landing State Overlay */
+        #connection-fallback {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-sidebar);
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 40px;
+        }
+
+        #connection-fallback h2 {
+            color: var(--text-main);
+            margin: 16px 0 8px;
+            font-weight: 400;
+        }
+
+        #connection-fallback p {
+            max-width: 320px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Header */
+        #chat-header {
+            background: var(--bg-sidebar);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            z-index: 2;
+        }
+
+        .active-user-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .active-user-meta h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .active-user-meta span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .disconnect-btn {
+            background: transparent;
+            border: 1px solid rgba(234, 0, 56, 0.3);
+            color: var(--danger);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .disconnect-btn:hover {
+            background: rgba(234, 0, 56, 0.05);
+            border-color: var(--danger);
+        }
+
+        /* Messaging Grid Layout with Classic BG Doodle */
+        #messages-viewport {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 8%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.035'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            scroll-behavior: smooth;
+        }
+
+        .msg-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .msg-container.outbound {
+            align-items: flex-end;
+        }
+
+        .msg-container.inbound {
+            align-items: flex-start;
+        }
+
+        .msg-bubble {
+            max-width: 65%;
+            padding: 6px 10px 8px 10px;
+            border-radius: 8px;
+            position: relative;
+            font-size: 0.93rem;
+            color: var(--text-main);
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.13);
+            cursor: pointer;
+            user-select: text;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.15s ease;
+        }
+
+        .msg-bubble:hover {
+            transform: scale(1.01);
+        }
+
+        .msg-container.outbound .msg-bubble {
+            background: var(--msg-out);
+            border-top-right-radius: 0;
+        }
+
+        .msg-container.inbound .msg-bubble {
+            background: var(--msg-in);
+            border-top-left-radius: 0;
+        }
+
+        .sender-tag {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+            margin-bottom: 4px;
+        }
+
+        .message-media-embed {
+            max-width: 100%;
+            border-radius: 6px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            max-height: 280px;
+            object-fit: contain;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .voice-note-player {
+            width: 240px;
+            height: 38px;
+            margin-top: 4px;
+            outline: none;
+        }
+
+        .msg-meta {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            align-self: flex-end;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            margin-left: 20px;
+        }
+
+        /* Quoted/Reply Rendering Inside Bubble */
+        .bubble-quote-ref {
+            background: rgba(0,0,0,0.04);
+            border-left: 4px solid var(--primary);
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+            max-height: 50px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Dynamic Reply Box Over Message Dock */
+        #active-reply-banner {
+            display: none;
+            background: #f0f2f5;
+            padding: 8px 24px;
+            border-top: 1px solid var(--border);
+            align-items: center;
+            justify-content: space-between;
+            animation: slideInUp 0.2s ease-out;
+            z-index: 3;
+        }
+
+        .reply-meta-wrap {
+            border-left: 4px solid var(--primary);
+            padding-left: 12px;
+            background: rgba(0,0,0,0.03);
+            border-radius: 4px;
+            flex: 1;
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
+
+        .reply-meta-title {
+            font-size: 0.75rem;
+            color: var(--primary-dark);
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .reply-meta-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 600px;
+        }
+
+        /* Sticky Bottom Dock */
+        #message-dock {
+            background: var(--bg-sidebar);
+            padding: 8px 16px;
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            border-top: 1px solid var(--border);
+            z-index: 2;
+        }
+
+        .dock-action-btn {
+            color: var(--text-muted);
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dock-action-btn:hover {
+            background: #e1e5e8;
+            color: var(--text-main);
+        }
+
+        .dock-text-input-wrapper {
+            flex: 1;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 2px 16px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        #chat-message-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 0.95rem;
+            padding: 8px 0;
+            max-height: 120px;
+            overflow-y: auto;
+            resize: none;
+            background: transparent;
+            color: var(--text-main);
+        }
+
+        /* Modern Custom Emoji Popover Box */
+        #emoji-popover {
+            display: none;
+            position: absolute;
+            bottom: 70px;
+            left: 16px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            padding: 12px;
+            width: 280px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            z-index: 100;
+            border: 1px solid var(--border);
+        }
+
+        .emoji-grid-cell {
+            font-size: 1.4rem;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.1s;
+            user-select: none;
+        }
+
+        .emoji-grid-cell:hover {
+            transform: scale(1.2);
+        }
+
+        /* Generic Helpers */
+        .system-notification {
+            align-self: center;
+            background: var(--system-yellow);
+            color: #303030;
+            font-size: 0.78rem;
+            padding: 6px 14px;
+            border-radius: 8px;
+            margin: 12px 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #c3e6cb;
+            color: #155724;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .status-pill.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Custom scrollbar matching WhatsApp style */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(11, 20, 26, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        /* Loader Animation */
+        .spinner-active {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Utility for mobile responsiveness toggle */
+        @media (max-width: 768px) {
+            #sidebar {
+                width: 100%;
+                min-width: 100%;
+                position: absolute;
+                inset: 0;
+            }
+            #sidebar.hidden-mobile {
+                transform: translateX(-100%);
+            }
+            #chat-area {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- LEFT SIDEBAR -->
+    <div id="sidebar" id="sidebar-panel">
+        <div class="sb-header">
+            <div class="profile-section">
+                <div class="avatar-container" id="profile-avatar">U</div>
+                <div style="flex:1;">
+                    <input type="text" id="username-field" class="username-input" placeholder="Your Display Name" onchange="handleProfileUpdate()">
+                </div>
+            </div>
+            <div style="color: var(--text-muted);">
+                <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
+            </div>
+        </div>
+
+        <div class="sb-content">
+            <!-- Connection Architecture Tabs -->
+            <div class="segmented-tabs">
+                <div class="seg-tab active" id="mode-tab-swarm" onclick="toggleGlobalMode('swarm')">Group Rooms</div>
+                <div class="seg-tab" id="mode-tab-p2p" onclick="toggleGlobalMode('p2p')">1-on-1 Manual</div>
+            </div>
+
+            <!-- TAB 1: GROUP SWARM (BUGOUT) -->
+            <div class="card animate__animated animate__fadeIn" id="card-group-swarm">
+                <h3><i data-lucide="users" style="width:18px;"></i> Swarm Chat Rooms</h3>
+                
+                <div class="segmented-tabs" style="background: #e2e6eb;">
+                    <div class="seg-tab active" id="swarm-flow-tab-create" onclick="toggleSwarmSubFlow('create')">Create Room</div>
+                    <div class="seg-tab" id="swarm-flow-tab-join" onclick="toggleSwarmSubFlow('join')">Join Room</div>
+                </div>
+
+                <!-- Create Form -->
+                <div id="swarm-sub-create">
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.3;">
+                        Invent a custom, friendly room name. Anyone with this name can join your secure group swarm.
+                    </p>
+                    <div class="input-group">
+                        <label>Custom Room Name</label>
+                        <input type="text" id="swarm-create-input" placeholder="e.g. My-Private-Lounge">
+                    </div>
+                    <button class="btn" onclick="initiateSwarmChannel('create')">
+                        <i data-lucide="plus-circle" style="width:16px;"></i> Create & Open Room
+                    </button>
+                </div>
+
+                <!-- Join Form -->
+                <div id="swarm-sub-join" style="display:none;">
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.3;">
+                        Type or paste the exact Room Name created by your peer to enter their active swarm.
+                    </p>
+                    <div class="input-group">
+                        <label>Existing Room Name</label>
+                        <input type="text" id="swarm-join-input" placeholder="e.g. My-Private-Lounge">
+                    </div>
+                    <button class="btn" onclick="initiateSwarmChannel('join')">
+                        <i data-lucide="log-in" style="width:16px;"></i> Join Swarm Group
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 2: MANUAL HANDSHAKE WIZARD (P2P) -->
+            <div class="card animate__animated animate__fadeIn" id="card-manual-p2p" style="display:none;">
+                <h3><i data-lucide="shield-alert" style="width:18px;"></i> Direct Handshake Link</h3>
+                
+                <div class="segmented-tabs" style="background: #e2e6eb;">
+                    <div class="seg-tab active" id="p2p-flow-tab-host" onclick="toggleP2PFlow('host')">Host Role</div>
+                    <div class="seg-tab" id="p2p-flow-tab-guest" onclick="toggleP2PFlow('guest')">Guest Role</div>
+                </div>
+
+                <!-- Host flow -->
+                <div id="flow-panel-host">
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.3;">
+                        1. Generate an Invite Token. Send it to your peer. Paste their Reply Token below to bridge.
+                    </p>
+                    <button class="btn outline" id="p2p-host-gen-btn" onclick="webrtcCreateOffer()">
+                        <i data-lucide="key" style="width:16px;"></i> Generate Invite Token
+                    </button>
+                    
+                    <div class="input-group" style="margin-top: 10px;">
+                        <textarea id="p2p-host-offer-field" readonly placeholder="Waiting to compile tokens..."></textarea>
+                        <button class="copy-badge-btn" onclick="copyValueToClipboard('p2p-host-offer-field')">
+                            <i data-lucide="copy" style="width:12px;"></i> Copy
+                        </button>
+                    </div>
+
+                    <div class="input-group">
+                        <label>2. Paste Reply Token From Guest</label>
+                        <textarea id="p2p-host-reply-field" placeholder="Paste the generated response string..."></textarea>
+                    </div>
+                    <button class="btn" onclick="webrtcHostAcceptAnswer()">
+                        <i data-lucide="zap" style="width:16px;"></i> Finalize Connection
+                    </button>
+                </div>
+
+                <!-- Guest flow -->
+                <div id="flow-panel-guest" style="display:none;">
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.3;">
+                        1. Paste the Host's Invite Token. Click generate, and send the response back to your Host.
+                    </p>
+                    <div class="input-group">
+                        <label>Host's Invite Token</label>
+                        <textarea id="p2p-guest-offer-field" placeholder="Paste host token..."></textarea>
+                    </div>
+
+                    <button class="btn outline" id="p2p-guest-gen-btn" onclick="webrtcCreateAnswer()">
+                        <i data-lucide="shield-check" style="width:16px;"></i> Generate Reply Token
+                    </button>
+
+                    <div class="input-group" style="margin-top: 10px;">
+                        <textarea id="p2p-guest-reply-field" readonly placeholder="Your response token..."></textarea>
+                        <button class="copy-badge-btn" onclick="copyValueToClipboard('p2p-guest-reply-field')">
+                            <i data-lucide="copy" style="width:12px;"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT CHAT VIEWPORT -->
+    <div id="chat-area">
+        <!-- Landing Fallback Setup page overlay -->
+        <div id="connection-fallback">
+            <i data-lucide="messages-square" style="width: 80px; height: 80px; color: var(--primary); opacity: 0.75;"></i>
+            <h2>Secure P2P Messenger</h2>
+            <p>Setup a custom room name under the Group tab or exchange direct keys in Manual mode to begin.</p>
+            <div style="margin-top: 24px; font-size: 0.75rem; color: var(--text-muted); display:flex; gap:6px; align-items:center;">
+                <i data-lucide="lock" style="width:14px;"></i> Direct browser-to-browser data routing. No intermediate database.
+            </div>
+        </div>
+
+        <!-- Connected Chat UI Header -->
+        <div id="chat-header">
+            <div class="active-user-meta">
+                <div class="avatar-container" style="background: var(--primary-dark);"><i data-lucide="globe" style="width:18px;"></i></div>
+                <div>
+                    <h4 id="header-active-name">Global Room</h4>
+                    <span><i data-lucide="users" style="width:12px;"></i> <span id="header-active-status">Active Mesh</span></span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <span id="header-active-indicator" class="status-pill">Active</span>
+                <button class="disconnect-btn" onclick="destroyConnectionState()">Disconnect</button>
+            </div>
+        </div>
+
+        <!-- Chat messages timeline container -->
+        <div id="messages-viewport"></div>
+
+        <!-- Reply Reference Container -->
+        <div id="active-reply-banner">
+            <div class="reply-meta-wrap">
+                <div class="reply-meta-title" id="reply-to-user">Replying to</div>
+                <div class="reply-meta-text" id="reply-to-body">Message reference...</div>
+            </div>
+            <div class="dock-action-btn" onclick="deactivateReplySystem()"><i data-lucide="x" style="width:16px;"></i></div>
+        </div>
+
+        <!-- Input Emoji Popover Grid -->
+        <div id="emoji-popover"></div>
+
+        <!-- Sticky Dock input footer bar -->
+        <div id="message-dock">
+            <div class="dock-action-btn" onclick="toggleEmojiBox()"><i data-lucide="smile"></i></div>
+            <div class="dock-action-btn" onclick="triggerFileSelector()"><i data-lucide="paperclip"></i></div>
+            <input type="file" id="media-attachment-input" style="display: none;" accept="image/*,video/*" onchange="processLocalAttachment(this)">
+            
+            <div class="dock-text-input-wrapper">
+                <input type="text" id="chat-message-input" placeholder="Type a message..." oninput="evaluateInputContext()" onkeypress="handleEnterSubmit(event)">
+            </div>
+
+            <!-- Contextual Send icon transitioning between voice memo & send -->
+            <div class="dock-action-btn" id="dock-action-mic" onclick="toggleAudioRecorder()"><i data-lucide="mic"></i></div>
+            <div class="dock-action-btn" id="dock-action-send" style="display: none; background: var(--primary); color: white;" onclick="transmitStandardMessage()"><i data-lucide="send" style="width: 18px;"></i></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize premium SVG icons
+    lucide.createIcons();
+
+    // App state flags
+    let currentGlobalMode = 'swarm'; // 'swarm' | 'p2p'
+    let currentSwarmSubFlow = 'create'; // 'create' | 'join'
+    let currentP2PFlow = 'host'; // 'host' | 'guest'
+    let activeUsername = localStorage.getItem('omnichat_username') || 'Peer_' + Math.floor(1000 + Math.random() * 9000);
+
+    // Messaging pipeline pointers
+    let activeBugoutInstance = null;
+    let localRTCPeerConnection = null;
+    let localRTCDataChannel = null;
+    let activeP2PMessageProtocol = null; // Stores either Bugout instance or RTCDataChannel
+
+    let activeReplyContextValue = null;
+    let audioMediaRecorder = null;
+    let audioBlobChunks = [];
+    let isCurrentlyRecordingAudio = false;
+
+    // Standard STUN servers for robust ICE Gathering
+    const webrtcIceConfiguration = {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' }
+        ]
+    };
+
+    // Populate Username profile fields
+    document.getElementById('username-field').value = activeUsername;
+    generateDynamicProfileAvatar(activeUsername);
+
+    // Custom Emoji Collection
+    const customGridEmojis = ['😀','😂','🥺','😍','🙏','👍','🔥','🎉','❤️','💔','🤔','😎','👀','🙌','✨','💯','✅','❌','💪','😜','🙄','😢','👏','🚀'];
+    const emojiContainer = document.getElementById('emoji-popover');
+    customGridEmojis.forEach(symbol => {
+        const cell = document.createElement('div');
+        cell.className = 'emoji-grid-cell';
+        cell.innerText = symbol;
+        cell.onclick = () => {
+            const inputField = document.getElementById('chat-message-input');
+            inputField.value += symbol;
+            toggleEmojiBox(false);
+            evaluateInputContext();
+        };
+        emojiContainer.appendChild(cell);
+    });
+
+    // Generate Dynamic fallbacks for Avatars
+    function generateDynamicProfileAvatar(nameString) {
+        const char = nameString.trim().charAt(0).toUpperCase();
+        const avBox = document.getElementById('profile-avatar');
+        avBox.innerText = char;
+        // Generate pseudo-random soft background coloring
+        const colors = ['#008069', '#128c7e', '#34b7f1', '#e54253', '#f2a154', '#8c52ff'];
+        let code = 0;
+        for (let i = 0; i < nameString.length; i++) code += nameString.charCodeAt(i);
+        avBox.style.backgroundColor = colors[code % colors.length];
+    }
+
+    function handleProfileUpdate() {
+        const rawName = document.getElementById('username-field').value.trim();
+        activeUsername = rawName || 'Peer_' + Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('username-field').value = activeUsername;
+        localStorage.setItem('omnichat_username', activeUsername);
+        generateDynamicProfileAvatar(activeUsername);
+    }
+
+    // Toggle Modes (Swarm vs Manual WebRTC)
+    function toggleGlobalMode(modeStr) {
+        currentGlobalMode = modeStr;
+        document.getElementById('mode-tab-swarm').className = modeStr === 'swarm' ? 'seg-tab active' : 'seg-tab';
+        document.getElementById('mode-tab-p2p').className = modeStr === 'p2p' ? 'seg-tab active' : 'seg-tab';
+
+        document.getElementById('card-group-swarm').style.display = modeStr === 'swarm' ? 'block' : 'none';
+        document.getElementById('card-manual-p2p').style.display = modeStr === 'p2p' ? 'block' : 'none';
+    }
+
+    function toggleSwarmSubFlow(flowStr) {
+        currentSwarmSubFlow = flowStr;
+        document.getElementById('swarm-flow-tab-create').className = flowStr === 'create' ? 'seg-tab active' : 'seg-tab';
+        document.getElementById('swarm-flow-tab-join').className = flowStr === 'join' ? 'seg-tab active' : 'seg-tab';
+
+        document.getElementById('swarm-sub-create').style.display = flowStr === 'create' ? 'block' : 'none';
+        document.getElementById('swarm-sub-join').style.display = flowStr === 'join' ? 'block' : 'none';
+    }
+
+    function toggleP2PFlow(flowStr) {
+        currentP2PFlow = flowStr;
+        document.getElementById('p2p-flow-tab-host').className = flowStr === 'host' ? 'seg-tab active' : 'seg-tab';
+        document.getElementById('p2p-flow-tab-guest').className = flowStr === 'guest' ? 'seg-tab active' : 'seg-tab';
+
+        document.getElementById('flow-panel-host').style.display = flowStr === 'host' ? 'block' : 'none';
+        document.getElementById('flow-panel-guest').style.display = flowStr === 'guest' ? 'block' : 'none';
+    }
+
+    function toggleEmojiBox(explicitState = null) {
+        const currentStyle = emojiContainer.style.display;
+        if (explicitState !== null) {
+            emojiContainer.style.display = explicitState ? 'grid' : 'none';
+        } else {
+            emojiContainer.style.display = currentStyle === 'grid' ? 'none' : 'grid';
+        }
+    }
+
+    function triggerFileSelector() {
+        document.getElementById('media-attachment-input').click();
+    }
+
+    // Dynamic sizing of input & action button shift
+    function evaluateInputContext() {
+        const value = document.getElementById('chat-message-input').value.trim();
+        const sendBtn = document.getElementById('dock-action-send');
+        const micBtn = document.getElementById('dock-action-mic');
+
+        if (value.length > 0) {
+            sendBtn.style.display = 'flex';
+            micBtn.style.display = 'none';
+        } else {
+            sendBtn.style.display = 'none';
+            micBtn.style.display = 'flex';
+        }
+    }
+
+    function handleEnterSubmit(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            transmitStandardMessage();
+        }
+    }
+
+    // --- SWARM ENGINE (BUGOUT INTEGRATION) ---
+    function initiateSwarmChannel(flow) {
+        let roomName = "";
+        if (flow === 'create') {
+            roomName = document.getElementById('swarm-create-input').value.trim();
+        } else {
+            roomName = document.getElementById('swarm-join-input').value.trim();
+        }
+
+        if (!roomName) {
+            alertCustom("Please fill in a valid custom Room Name!");
+            return;
+        }
+
+        destroyConnectionState(true); // Purge existing connections safely before initializing
+
+        // Sanitize and normalize room token for BitTorrent Tracker DHT mappings
+        const hashedRoomId = "omnichat-swarm-" + encodeURIComponent(roomName.toLowerCase().replace(/\s+/g, '-'));
+        
+        try {
+            activeBugoutInstance = new Bugout(hashedRoomId);
+        } catch (err) {
+            alertCustom("Failed to load Swarm Engine library. Please check network restrictions.");
+            return;
+        }
+
+        activeP2PMessageProtocol = activeBugoutInstance;
+
+        // Establish core lifecycle hooks
+        activeBugoutInstance.on("ready", () => {
+            pushSystemAlertBubble(`Initialized group swarm successfully. Listening to tracker hash node.`);
+            activateChatInterface(`Group: ${roomName}`, "Searching network for peers...");
+        });
+
+        activeBugoutInstance.on("message", (address, payload) => {
+            // Receive and decode structured group packets
+            if (payload && payload.sender && payload.body) {
+                renderMessageBubble(payload, 'inbound');
+            }
+        });
+
+        activeBugoutInstance.on("seen", (address) => {
+            updateSwarmNodeHeaderCount();
+        });
+
+        activeBugoutInstance.on("timeout", (address) => {
+            updateSwarmNodeHeaderCount();
+        });
+    }
+
+    function updateSwarmNodeHeaderCount() {
+        if (activeBugoutInstance) {
+            const peerCount = Object.keys(activeBugoutInstance.peers).length;
+            document.getElementById('header-active-status').innerText = `${peerCount} peer(s) connected`;
+        }
+    }
+
+    // --- P2P MANUAL HANDSHAKE WIZARD (WEBRTC) ---
+    function prepareManualWebRTCChannel() {
+        localRTCPeerConnection = new RTCPeerConnection(webrtcIceConfiguration);
+
+        localRTCPeerConnection.oniceconnectionstatechange = () => {
+            const state = localRTCPeerConnection.iceConnectionState;
+            pushSystemAlertBubble(`ICE Connection status update: ${state}`);
+            
+            if (state === 'connected') {
+                activateChatInterface("Direct 1-on-1 Connected", "Peer Link Live");
+                document.getElementById('header-active-indicator').className = "status-pill";
+                document.getElementById('header-active-indicator').innerText = "Encrypted";
+            } else if (state === 'disconnected' || state === 'failed') {
+                pushSystemAlertBubble("Direct P2P socket pipeline disrupted. Attempting re-routing...");
+                document.getElementById('header-active-indicator').className = "status-pill offline";
+                document.getElementById('header-active-indicator').innerText = "Offline";
+            }
+        };
+
+        localRTCPeerConnection.ondatachannel = (event) => {
+            localRTCDataChannel = event.channel;
+            bindManualRTCDataEvents();
+        };
+    }
+
+    function bindManualRTCDataEvents() {
+        if (!localRTCDataChannel) return;
+
+        localRTCDataChannel.onopen = () => {
+            pushSystemAlertBubble("Manual RTCDataChannel link verified. Secure data routing unlocked.");
+            activeP2PMessageProtocol = localRTCDataChannel;
+            activateChatInterface("Direct 1-on-1 Connected", "Secure Tunnel Active");
+        };
+
+        localRTCDataChannel.onclose = () => {
+            pushSystemAlertBubble("Manual RTCDataChannel link closed down.");
+            activeP2PMessageProtocol = null;
+        };
+
+        localRTCDataChannel.onmessage = (event) => {
+            try {
+                const payload = JSON.parse(event.data);
+                renderMessageBubble(payload, 'inbound');
+            } catch (err) {
+                console.error("Malformed package parsed from direct peer link.", err);
+            }
+        };
+    }
+
+    // Wizard Step: HOST generates SDP Offer and waits for all ICE candidates to assemble
+    async function webrtcCreateOffer() {
+        const btn = document.getElementById('p2p-host-gen-btn');
+        btn.innerHTML = `<i class="lucide-loader spinner-active" data-lucide="loader"></i> Assembling Local Paths...`;
+        btn.disabled = true;
+        lucide.createIcons();
+
+        prepareManualWebRTCChannel();
+
+        // Create the transmission channel
+        localRTCDataChannel = localRTCPeerConnection.createDataChannel("manual-payload-channel");
+        bindManualRTCDataEvents();
+
+        localRTCPeerConnection.onicecandidate = (event) => {
+            // Once gathering is complete (candidate === null), serialize the base64 package
+            if (event.candidate === null) {
+                const invitePackage = {
+                    sdp: localRTCPeerConnection.localDescription,
+                };
+                document.getElementById('p2p-host-offer-field').value = btoa(JSON.stringify(invitePackage));
+                btn.innerHTML = `<i data-lucide="check" style="width:16px;"></i> Invite Token Ready`;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        };
+
+        try {
+            const offerSDP = await localRTCPeerConnection.createOffer();
+            await localRTCPeerConnection.setLocalDescription(offerSDP);
+        } catch (err) {
+            alertCustom("Failed to formulate local SDP Offer. Try restarting browser components.");
+            btn.innerHTML = `<i data-lucide="key" style="width:16px;"></i> Generate Invite Token`;
+            btn.disabled = false;
+            lucide.createIcons();
+        }
+    }
+
+    // Wizard Step: GUEST processes HOST Invite Offer, produces Guest Answer, and waits for ICE assembly
+    async function webrtcCreateAnswer() {
+        const hostTokenRaw = document.getElementById('p2p-guest-offer-field').value.trim();
+        if (!hostTokenRaw) {
+            alertCustom("Please paste the Host's Invite Token first!");
+            return;
+        }
+
+        const btn = document.getElementById('p2p-guest-gen-btn');
+        btn.innerHTML = `<i class="lucide-loader spinner-active" data-lucide="loader"></i> Formulating Answer...`;
+        btn.disabled = true;
+        lucide.createIcons();
+
+        prepareManualWebRTCChannel();
+
+        localRTCPeerConnection.onicecandidate = (event) => {
+            if (event.candidate === null) {
+                const guestPackage = {
+                    sdp: localRTCPeerConnection.localDescription
+                };
+                document.getElementById('p2p-guest-reply-field').value = btoa(JSON.stringify(guestPackage));
+                btn.innerHTML = `<i data-lucide="check" style="width:16px;"></i> Answer Reply Ready`;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        };
+
+        try {
+            const decodedHostPackage = JSON.parse(atob(hostTokenRaw));
+            await localRTCPeerConnection.setRemoteDescription(new RTCSessionDescription(decodedHostPackage.sdp));
+            
+            const answerSDP = await localRTCPeerConnection.createAnswer();
+            await localRTCPeerConnection.setLocalDescription(answerSDP);
+        } catch (err) {
+            alertCustom("Invalid host token format parsed. Please verify strings match.");
+            btn.innerHTML = `<i data-lucide="shield-check" style="width:16px;"></i> Generate Reply Token`;
+            btn.disabled = false;
+            lucide.createIcons();
+        }
+    }
+
+    // Wizard Step: HOST accepts GUEST's answer to bridge the handshake connection
+    async function webrtcHostAcceptAnswer() {
+        const replyTokenRaw = document.getElementById('p2p-host-reply-field').value.trim();
+        if (!replyTokenRaw) {
+            alertCustom("Please paste your guest peer's Response Token first!");
+            return;
+        }
+
+        try {
+            const decodedGuestPackage = JSON.parse(atob(replyTokenRaw));
+            await localRTCPeerConnection.setRemoteDescription(new RTCSessionDescription(decodedGuestPackage.sdp));
+            pushSystemAlertBubble("Accepting guest remote pathing... Negotiating WebRTC data stream.");
+        } catch (err) {
+            alertCustom("Invalid response token format parsed. Ensure guest copied their exact complete string.");
+        }
+    }
+
+    // --- SYSTEM ROUTING AND RENDERING DOCK ---
+    function activateChatInterface(titleText, subtitleText) {
+        document.getElementById('connection-fallback').style.display = 'none';
+        document.getElementById('header-active-name').innerText = titleText;
+        document.getElementById('header-active-status').innerText = subtitleText;
+        document.getElementById('messages-viewport').innerHTML = ""; // Purge old frames
+    }
+
+    function destroyConnectionState(silent = false) {
+        if (activeBugoutInstance) {
+            try { activeBugoutInstance.destroy(); } catch(e){}
+            activeBugoutInstance = null;
+        }
+
+        if (localRTCDataChannel) {
+            try { localRTCDataChannel.close(); } catch(e){}
+            localRTCDataChannel = null;
+        }
+
+        if (localRTCPeerConnection) {
+            try { localRTCPeerConnection.close(); } catch(e){}
+            localRTCPeerConnection = null;
+        }
+
+        activeP2PMessageProtocol = null;
+
+        if (!silent) {
+            document.getElementById('connection-fallback').style.display = 'flex';
+            document.getElementById('messages-viewport').innerHTML = "";
+            document.getElementById('p2p-host-offer-field').value = "";
+            document.getElementById('p2p-host-reply-field').value = "";
+            document.getElementById('p2p-guest-offer-field').value = "";
+            document.getElementById('p2p-guest-reply-field').value = "";
+        }
+    }
+
+    // Dispatch Standard text message packet
+    function transmitStandardMessage() {
+        const inputField = document.getElementById('chat-message-input');
+        const textValue = inputField.value.trim();
+        if (!textValue) return;
+
+        if (!activeP2PMessageProtocol) {
+            alertCustom("No active P2P node. Setup a Group Room or direct manual handshakes first.");
+            return;
+        }
+
+        const payloadPacket = {
+            id: generateUniqueMessageId(),
+            type: "MSG",
+            sender: activeUsername,
+            body: textValue,
+            timestamp: getShortTime(),
+            replyTo: activeReplyContextValue
+        };
+
+        sendPayloadAcrossChannel(payloadPacket);
+        renderMessageBubble(payloadPacket, 'outbound');
+
+        // Reset state values
+        inputField.value = "";
+        deactivateReplySystem();
+        evaluateInputContext();
+        toggleEmojiBox(false);
+    }
+
+    // Dispatch file transfers across active stream
+    function processLocalAttachment(inputEl) {
+        const file = inputEl.files[0];
+        if (!file) return;
+
+        if (!activeP2PMessageProtocol) {
+            alertCustom("Please connect to a secure channel before transmitting file packets.");
+            return;
+        }
+
+        const fileTypeGroup = file.type.split('/')[0]; // 'image' or 'video'
+        if (fileTypeGroup !== 'image' && fileTypeGroup !== 'video') {
+            alertCustom("Only image and video file transfers are directly supported in browser mesh panels.");
+            return;
+        }
+
+        const reader = new FileReader();
+        pushSystemAlertBubble(`Encoding dynamic file packet [${file.name}]...`);
+        
+        reader.onload = (event) => {
+            const payloadPacket = {
+                id: generateUniqueMessageId(),
+                type: fileTypeGroup === 'image' ? 'IMAGE' : 'VIDEO',
+                sender: activeUsername,
+                body: event.target.result, // base64 string
+                fileName: file.name,
+                timestamp: getShortTime(),
+                replyTo: activeReplyContextValue
+            };
+
+            sendPayloadAcrossChannel(payloadPacket);
+            renderMessageBubble(payloadPacket, 'outbound');
+            deactivateReplySystem();
+            inputEl.value = ""; // purge selector cached file
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    // Dispatch Voice recording over connection
+    async function toggleAudioRecorder() {
+        if (!activeP2PMessageProtocol) {
+            alertCustom("Join an active peer connection before starting voice record.");
+            return;
+        }
+
+        if (isCurrentlyRecordingAudio) {
+            // STOP recording
+            if (audioMediaRecorder) {
+                audioMediaRecorder.stop();
+            }
+            return;
+        }
+
+        // START recording
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioBlobChunks = [];
+            audioMediaRecorder = new MediaRecorder(stream);
+            
+            audioMediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioBlobChunks.push(event.data);
+                }
+            };
+
+            audioMediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioBlobChunks, { type: 'audio/webm' });
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const payloadPacket = {
+                        id: generateUniqueMessageId(),
+                        type: 'AUDIO',
+                        sender: activeUsername,
+                        body: event.target.result, // webm encoded base64 audio
+                        timestamp: getShortTime(),
+                        replyTo: activeReplyContextValue
+                    };
+                    sendPayloadAcrossChannel(payloadPacket);
+                    renderMessageBubble(payloadPacket, 'outbound');
+                    deactivateReplySystem();
+                };
+                reader.readAsDataURL(audioBlob);
+
+                // Terminate stream tracks cleanly
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            audioMediaRecorder.start();
+            isCurrentlyRecordingAudio = true;
+            document.getElementById('dock-action-mic').innerHTML = `<i data-lucide="square" style="color: var(--danger); width:18px;"></i>`;
+            document.getElementById('dock-action-mic').classList.add('animate__animated', 'animate__flash', 'animate__infinite');
+            pushSystemAlertBubble("Audio recording active... Click square button to stop and transmit.");
+            lucide.createIcons();
+
+        } catch (err) {
+            alertCustom("Microphone input permission blocked. Please enable access in browser configurations.");
+        }
+    }
+
+    function stopRecordingUIState() {
+        isCurrentlyRecordingAudio = false;
+        const micIcon = document.getElementById('dock-action-mic');
+        micIcon.innerHTML = `<i data-lucide="mic"></i>`;
+        micIcon.className = "dock-action-btn";
+        lucide.createIcons();
+    }
+
+    function sendPayloadAcrossChannel(payloadObj) {
+        if (!activeP2PMessageProtocol) return;
+
+        // If it's a manual WebRTC connection channel, must stringify
+        if (activeP2PMessageProtocol instanceof Bugout) {
+            activeP2PMessageProtocol.send(payloadObj);
+        } else if (activeP2PMessageProtocol.readyState === 'open') {
+            activeP2PMessageProtocol.send(JSON.stringify(payloadObj));
+        }
+    }
+
+    // Render messaging bubbles into the timeline viewport
+    function renderMessageBubble(packet, direction) {
+        if (packet.type === 'AUDIO') {
+            stopRecordingUIState();
+        }
+
+        const viewport = document.getElementById('messages-viewport');
+        const container = document.createElement('div');
+        container.className = `msg-container ${direction}`;
+
+        const bubble = document.createElement('div');
+        bubble.className = `msg-bubble animate__animated animate__fadeInUp animate__faster`;
+
+        // Quote reply injection
+        if (packet.replyTo) {
+            const quoteEl = document.createElement('div');
+            quoteEl.className = 'bubble-quote-ref';
+            quoteEl.innerText = packet.replyTo;
+            bubble.appendChild(quoteEl);
+        }
+
+        // User label for inbound group packets
+        if (direction === 'inbound' && currentGlobalMode === 'swarm') {
+            const label = document.createElement('div');
+            label.className = 'sender-tag';
+            label.innerText = packet.sender;
+            bubble.appendChild(label);
+        }
+
+        // Media embedding switch
+        if (packet.type === 'IMAGE') {
+            const img = document.createElement('img');
+            img.className = 'message-media-embed';
+            img.src = packet.body;
+            img.onclick = () => window.open(packet.body, '_blank');
+            bubble.appendChild(img);
+        } else if (packet.type === 'VIDEO') {
+            const video = document.createElement('video');
+            video.className = 'message-media-embed';
+            video.src = packet.body;
+            video.controls = true;
+            bubble.appendChild(video);
+        } else if (packet.type === 'AUDIO') {
+            const audio = document.createElement('audio');
+            audio.className = 'voice-note-player';
+            audio.src = packet.body;
+            audio.controls = true;
+            bubble.appendChild(audio);
+        } else {
+            // Text packet
+            const bodySpan = document.createElement('span');
+            bodySpan.innerHTML = formatTextMessageToAnchorLinks(packet.body);
+            bubble.appendChild(bodySpan);
+        }
+
+        // Double Click listener setup for contextual reply targeting
+        bubble.ondblclick = () => {
+            const refText = packet.type === 'MSG' ? packet.body : `[Media Attachment]`;
+            activateReplySystem(packet.sender, refText);
+        };
+
+        // Timestamp & receipts integration
+        const meta = document.createElement('div');
+        meta.className = 'msg-meta';
+        meta.innerHTML = `
+            <span>${packet.timestamp || getShortTime()}</span>
+            ${direction === 'outbound' ? `<i data-lucide="check-check" style="width: 14px; color: #53bdeb;"></i>` : ''}
+        `;
+        bubble.appendChild(meta);
+
+        container.appendChild(bubble);
+        viewport.appendChild(container);
+        viewport.scrollTop = viewport.scrollHeight; // Auto anchor scroll timeline down
+
+        lucide.createIcons();
+    }
+
+    // --- CONTEXTUAL REPLIES ENGINE ---
+    function activateReplySystem(sender, refText) {
+        activeReplyContextValue = `"${refText}" - ${sender}`;
+        document.getElementById('reply-to-user').innerText = `Replying to ${sender}`;
+        document.getElementById('reply-to-body').innerText = refText;
+        document.getElementById('active-reply-banner').style.display = 'flex';
+        document.getElementById('chat-message-input').focus();
+    }
+
+    function deactivateReplySystem() {
+        activeReplyContextValue = null;
+        document.getElementById('active-reply-banner').style.display = 'none';
+    }
+
+    function pushSystemAlertBubble(alertText) {
+        const viewport = document.getElementById('messages-viewport');
+        const alertEl = document.createElement('div');
+        alertEl.className = 'system-notification animate__animated animate__fadeIn';
+        alertEl.innerHTML = `<i data-lucide="info" style="width: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> ${alertText}`;
+        viewport.appendChild(alertEl);
+        viewport.scrollTop = viewport.scrollHeight;
+        lucide.createIcons();
+    }
+
+    // --- PROTOCOL HELPERS ---
+    function generateUniqueMessageId() {
+        return 'msg_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+    }
+
+    function getShortTime() {
+        return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatTextMessageToAnchorLinks(textStr) {
+        // Simple regex matching standard HTTP strings to dynamic anchor elements securely
+        const urlExpression = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+        return textStr.replace(urlExpression, '<a href="$1" target="_blank" style="color: var(--primary); text-decoration: underline;">$1</a>');
+    }
+
+    function copyValueToClipboard(elementId) {
+        const textarea = document.getElementById(elementId);
+        if (!textarea.value) return;
+        
+        // Premium fallback Clipboard copy implementation matching Sandboxed iframe security frameworks
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+        alertCustom("Security Token Copied to Clipboard!");
+    }
+
+    // Clean modern custom fallback notification replacing blocked windows alert framework
+    function alertCustom(message) {
+        const modal = document.createElement('div');
+        modal.style.position = 'absolute';
+        modal.style.top = '24px';
+        modal.style.left = '50%';
+        modal.style.transform = 'translateX(-50%)';
+        modal.style.background = '#323232';
+        modal.style.color = '#ffffff';
+        modal.style.padding = '12px 24px';
+        modal.style.borderRadius = '8px';
+        modal.style.fontSize = '0.9rem';
+        modal.style.zIndex = '9999';
+        modal.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+        modal.className = 'animate__animated animate__bounceInDown';
+        modal.innerText = message;
+        
+        document.body.appendChild(modal);
+        setTimeout(() => {
+            modal.className = 'animate__animated animate__fadeOutUp';
+            setTimeout(() => modal.remove(), 400);
+        }, 2800);
+    }
+</script>
+
+</body>
+</html>
