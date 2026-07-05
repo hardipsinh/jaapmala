@@ -6,7 +6,7 @@
     <title>Chat | Secure P2P Mesh</title>
     <!-- Premium UI / CSS Styling CDN Dependencies -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/bugout@latest/dist/bugout.min.js" onerror="console.warn('Bugout DHT script blocked by browser ORB / CORS rules. Local fallback enabled.')"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js" onerror="console.warn('PeerJS WebRTC CDN failed to load.')"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -77,10 +77,10 @@
             <div class="profile-section flex items-center gap-3 flex-1">
                 <div id="profile-avatar" class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-sm text-lg transition-all duration-200">U</div>
                 <div class="flex-1">
-                    <input type="text" id="username-field" class="username-input bg-transparent border-b border-transparent hover:border-primary focus:border-primary text-sm font-semibold text-text-main w-full outline-none py-1 px-1 transition-all duration-200" placeholder="Display Name" onchange="handleProfileUpdate()">
+                    <input type="text" id="username-field" class="username-input bg-transparent border-b border-transparent hover:border-primary focus:border-primary text-sm font-semibold text-text-main w-full outline-none py-1 px-1 transition-all duration-200" placeholder="Display Name" onchange="window.handleProfileUpdate()">
                 </div>
             </div>
-            <div class="text-text-muted hover:text-text-main cursor-pointer" onclick="alertCustom('Secure P2P Mesh Ready')">
+            <div class="text-text-muted hover:text-text-main cursor-pointer" onclick="window.alertCustom('Secure WebRTC Mesh Ready')">
                 <i data-lucide="shield-check" class="w-5 h-5 text-primary"></i>
             </div>
         </div>
@@ -88,8 +88,8 @@
         <div class="sb-content flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-white">
             <!-- Connection Mode Tabs -->
             <div class="segmented-tabs flex bg-gray-200 rounded-lg p-1">
-                <div class="seg-tab active flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold text-text-muted transition-all duration-200" id="mode-tab-swarm" onclick="toggleGlobalMode('swarm')">Group Rooms</div>
-                <div class="seg-tab flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold text-text-muted transition-all duration-200" id="mode-tab-p2p" onclick="toggleGlobalMode('p2p')">1-on-1 Manual</div>
+                <div class="seg-tab active flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold text-text-muted transition-all duration-200" id="mode-tab-swarm" onclick="window.toggleGlobalMode('swarm')">Group Rooms</div>
+                <div class="seg-tab flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold text-text-muted transition-all duration-200" id="mode-tab-p2p" onclick="window.toggleGlobalMode('p2p')">1-on-1 Manual</div>
             </div>
 
             <!-- TAB 1: GROUP SWARM -->
@@ -97,20 +97,20 @@
                 <h3 class="text-sm font-bold text-primary-dark mb-3 flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i> Swarm Chat Rooms</h3>
                 
                 <div class="segmented-tabs flex bg-gray-300/60 rounded-lg p-1 mb-3">
-                    <div class="seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted" id="swarm-flow-tab-create" onclick="toggleSwarmSubFlow('create')">Create Room</div>
-                    <div class="seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted" id="swarm-flow-tab-join" onclick="toggleSwarmSubFlow('join')">Join Room</div>
+                    <div class="seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted" id="swarm-flow-tab-create" onclick="window.toggleSwarmSubFlow('create')">Create Room</div>
+                    <div class="seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted" id="swarm-flow-tab-join" onclick="window.toggleSwarmSubFlow('join')">Join Room</div>
                 </div>
 
                 <!-- Create Form -->
                 <div id="swarm-sub-create" class="space-y-3">
                     <p class="text-[11px] text-text-muted leading-relaxed">
-                        Invent a custom room name. Share it with your peers to merge them into your real-time decentralized channel.
+                        Invent a custom room name. Being a Host lets you securely coordinate real-time data flow.
                     </p>
                     <div class="input-group">
                         <label class="block text-[10px] font-bold text-text-muted uppercase mb-1 tracking-wider">Custom Room Name</label>
                         <input type="text" id="swarm-create-input" class="w-full p-2 text-sm border border-border-default rounded-lg outline-none focus:border-primary focus:ring-2 focus:ring-primary/10" placeholder="e.g. Gondal-Private">
                     </div>
-                    <button class="btn w-full py-2 bg-primary text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary-dark active:scale-[0.98] transition-all" onclick="initiateSwarmChannel('create')">
+                    <button class="btn w-full py-2 bg-primary text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary-dark active:scale-[0.98] transition-all" onclick="window.initiateSwarmChannel('create')">
                         <i data-lucide="plus-circle" class="w-4 h-4"></i> Create & Open Room
                     </button>
                 </div>
@@ -118,13 +118,13 @@
                 <!-- Join Form -->
                 <div id="swarm-sub-join" class="space-y-3 hidden">
                     <p class="text-[11px] text-text-muted leading-relaxed">
-                        Enter the exact Room Name configured by your peer to seamlessly join their active group swarm.
+                        Enter the exact Room Name configured by your peer to connect to their WebRTC Host immediately.
                     </p>
                     <div class="input-group">
                         <label class="block text-[10px] font-bold text-text-muted uppercase mb-1 tracking-wider">Existing Room Name</label>
                         <input type="text" id="swarm-join-input" class="w-full p-2 text-sm border border-border-default rounded-lg outline-none focus:border-primary focus:ring-2 focus:ring-primary/10" placeholder="e.g. Gondal-Private">
                     </div>
-                    <button class="btn w-full py-2 bg-primary text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary-dark active:scale-[0.98] transition-all" onclick="initiateSwarmChannel('join')">
+                    <button class="btn w-full py-2 bg-primary text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary-dark active:scale-[0.98] transition-all" onclick="window.initiateSwarmChannel('join')">
                         <i data-lucide="log-in" class="w-4 h-4"></i> Join Swarm Group
                     </button>
                 </div>
@@ -135,8 +135,8 @@
                 <h3 class="text-sm font-bold text-primary-dark mb-3 flex items-center gap-2"><i data-lucide="shield-alert" class="w-4 h-4"></i> Direct Handshake Link</h3>
                 
                 <div class="segmented-tabs flex bg-gray-300/60 rounded-lg p-1 mb-3">
-                    <div class="seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted" id="p2p-flow-tab-host" onclick="toggleP2PFlow('host')">Host Role</div>
-                    <div class="seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted" id="p2p-flow-tab-guest" onclick="toggleP2PFlow('guest')">Guest Role</div>
+                    <div class="seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted" id="p2p-flow-tab-host" onclick="window.toggleP2PFlow('host')">Host Role</div>
+                    <div class="seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted" id="p2p-flow-tab-guest" onclick="window.toggleP2PFlow('guest')">Guest Role</div>
                 </div>
 
                 <!-- Host flow -->
@@ -144,13 +144,13 @@
                     <p class="text-[11px] text-text-muted leading-relaxed">
                         1. Generate an Invite Token. Send it to your peer. Paste their generated Response Token below to bridge.
                     </p>
-                    <button class="btn outline w-full py-2 bg-transparent text-primary border border-primary rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary/5 active:scale-[0.98] transition-all" id="p2p-host-gen-btn" onclick="webrtcCreateOffer()">
+                    <button class="btn outline w-full py-2 bg-transparent text-primary border border-primary rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary/5 active:scale-[0.98] transition-all" id="p2p-host-gen-btn" onclick="window.webrtcCreateOffer()">
                         <i data-lucide="key" class="w-4 h-4"></i> Generate Invite Token
                     </button>
                     
                     <div class="input-group relative">
                         <textarea id="p2p-host-offer-field" readonly class="w-full h-16 p-2 pr-12 text-[10px] font-mono border border-border-default bg-white rounded-lg outline-none resize-none" placeholder="Invite Token will generate here..."></textarea>
-                        <button class="copy-badge-btn absolute right-2 top-2 bg-bg-sidebar hover:bg-gray-200 border border-border-default rounded px-2 py-0.5 text-[10px] font-semibold text-text-muted" onclick="copyValueToClipboard('p2p-host-offer-field')">
+                        <button class="copy-badge-btn absolute right-2 top-2 bg-bg-sidebar hover:bg-gray-200 border border-border-default rounded px-2 py-0.5 text-[10px] font-semibold text-text-muted" onclick="window.copyValueToClipboard('p2p-host-offer-field')">
                             <i data-lucide="copy" class="w-3 h-3 inline-block mr-1"></i> Copy
                         </button>
                     </div>
@@ -159,7 +159,7 @@
                         <label class="block text-[10px] font-bold text-text-muted uppercase mb-1 tracking-wider">2. Paste Reply Token From Guest</label>
                         <textarea id="p2p-host-reply-field" class="w-full h-16 p-2 text-[10px] font-mono border border-border-default bg-white rounded-lg outline-none resize-none" placeholder="Paste response token to establish line..."></textarea>
                     </div>
-                    <button class="btn w-full py-2 bg-primary text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary-dark active:scale-[0.98] transition-all" onclick="webrtcHostAcceptAnswer()">
+                    <button class="btn w-full py-2 bg-primary text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary-dark active:scale-[0.98] transition-all" onclick="window.webrtcHostAcceptAnswer()">
                         <i data-lucide="zap" class="w-4 h-4"></i> Finalize Connection
                     </button>
                 </div>
@@ -174,13 +174,13 @@
                         <textarea id="p2p-guest-offer-field" class="w-full h-16 p-2 text-[10px] font-mono border border-border-default bg-white rounded-lg outline-none resize-none" placeholder="Paste host's invite token..."></textarea>
                     </div>
 
-                    <button class="btn outline w-full py-2 bg-transparent text-primary border border-primary rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary/5 active:scale-[0.98] transition-all" id="p2p-guest-gen-btn" onclick="webrtcCreateAnswer()">
+                    <button class="btn outline w-full py-2 bg-transparent text-primary border border-primary rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary/5 active:scale-[0.98] transition-all" id="p2p-guest-gen-btn" onclick="window.webrtcCreateAnswer()">
                         <i data-lucide="shield-check" class="w-4 h-4"></i> Generate Reply Token
                     </button>
 
                     <div class="input-group relative">
                         <textarea id="p2p-guest-reply-field" readonly class="w-full h-16 p-2 pr-12 text-[10px] font-mono border border-border-default bg-white rounded-lg outline-none resize-none" placeholder="Reply token will generate here..."></textarea>
-                        <button class="copy-badge-btn absolute right-2 top-2 bg-bg-sidebar hover:bg-gray-200 border border-border-default rounded px-2 py-0.5 text-[10px] font-semibold text-text-muted" onclick="copyValueToClipboard('p2p-guest-reply-field')">
+                        <button class="copy-badge-btn absolute right-2 top-2 bg-bg-sidebar hover:bg-gray-200 border border-border-default rounded px-2 py-0.5 text-[10px] font-semibold text-text-muted" onclick="window.copyValueToClipboard('p2p-guest-reply-field')">
                             <i data-lucide="copy" class="w-3 h-3 inline-block mr-1"></i> Copy
                         </button>
                     </div>
@@ -199,7 +199,7 @@
                 Configure a custom room under the <b>Group Rooms</b> tab, or exchange direct keys in 1-on-1 Manual mode to start encrypted communication.
             </p>
             <div class="flex items-center gap-2 text-xs text-text-muted">
-                <i data-lucide="lock" class="w-4 h-4 text-primary"></i> 100% serverless, zero database direct browser-to-browser connection.
+                <i data-lucide="lock" class="w-4 h-4 text-primary"></i> 100% serverless, zero database PeerJS WebRTC direct mesh.
             </div>
         </div>
 
@@ -219,7 +219,7 @@
             </div>
             <div class="header-actions flex items-center gap-3">
                 <span id="header-active-indicator" class="status-pill text-xs font-bold text-green-700 bg-green-100 py-1 px-3 rounded-full">Secure</span>
-                <button class="disconnect-btn bg-transparent border border-red-200 text-danger hover:bg-red-50 hover:border-danger text-xs font-semibold py-1.5 px-3 rounded-md transition-all duration-200" onclick="destroyConnectionState()">Disconnect</button>
+                <button class="disconnect-btn bg-transparent border border-red-200 text-danger hover:bg-red-50 hover:border-danger text-xs font-semibold py-1.5 px-3 rounded-md transition-all duration-200" onclick="window.destroyConnectionState()">Disconnect</button>
             </div>
         </header>
 
@@ -232,7 +232,7 @@
                 <div class="reply-meta-title text-xs font-bold text-primary-dark mb-0.5" id="reply-to-user">Replying to</div>
                 <div class="reply-meta-text text-sm text-text-muted truncate max-w-[600px]" id="reply-to-body">Message reference...</div>
             </div>
-            <div class="dock-action-btn p-2 hover:bg-gray-200 rounded-full cursor-pointer text-text-muted" onclick="deactivateReplySystem()">
+            <div class="dock-action-btn p-2 hover:bg-gray-200 rounded-full cursor-pointer text-text-muted" onclick="window.deactivateReplySystem()">
                 <i data-lucide="x" class="w-4 h-4"></i>
             </div>
         </div>
@@ -242,22 +242,22 @@
 
         <!-- Bottom Chat Input Dock -->
         <div id="message-dock" class="bg-bg-sidebar p-3 flex items-end gap-3 border-t border-border-default z-10">
-            <div class="dock-action-btn p-2 text-text-muted hover:text-text-main hover:bg-gray-200 rounded-full cursor-pointer transition" onclick="toggleEmojiBox()">
+            <div class="dock-action-btn p-2 text-text-muted hover:text-text-main hover:bg-gray-200 rounded-full cursor-pointer transition" onclick="window.toggleEmojiBox()">
                 <i data-lucide="smile" class="w-5 h-5"></i>
             </div>
-            <div class="dock-action-btn p-2 text-text-muted hover:text-text-main hover:bg-gray-200 rounded-full cursor-pointer transition" onclick="triggerFileSelector()">
+            <div class="dock-action-btn p-2 text-text-muted hover:text-text-main hover:bg-gray-200 rounded-full cursor-pointer transition" onclick="window.triggerFileSelector()">
                 <i data-lucide="paperclip" class="w-5 h-5"></i>
             </div>
-            <input type="file" id="media-attachment-input" class="hidden" accept="image/*,video/*" onchange="processLocalAttachment(this)">
+            <input type="file" id="media-attachment-input" class="hidden" accept="image/*,video/*" onchange="window.processLocalAttachment(this)">
             
             <div class="dock-text-input-wrapper flex-1 bg-white rounded-full py-1.5 px-4 shadow-sm border border-border-default/50 flex items-center">
-                <input type="text" id="chat-message-input" class="w-full border-none outline-none text-sm text-text-main bg-transparent py-1" placeholder="Type a message..." oninput="evaluateInputContext()" onkeypress="handleEnterSubmit(event)">
+                <input type="text" id="chat-message-input" class="w-full border-none outline-none text-sm text-text-main bg-transparent py-1" placeholder="Type a message..." oninput="window.evaluateInputContext()" onkeypress="window.handleEnterSubmit(event)">
             </div>
 
-            <div class="dock-action-btn p-2.5 text-text-muted hover:text-text-main hover:bg-gray-200 rounded-full cursor-pointer transition" id="dock-action-mic" onclick="toggleAudioRecorder()">
+            <div class="dock-action-btn p-2.5 text-text-muted hover:text-text-main hover:bg-gray-200 rounded-full cursor-pointer transition" id="dock-action-mic" onclick="window.toggleAudioRecorder()">
                 <i data-lucide="mic" class="w-5 h-5"></i>
             </div>
-            <div class="dock-action-btn p-2.5 bg-primary text-white rounded-full cursor-pointer hover:bg-primary-dark transition shadow-md hidden" id="dock-action-send" onclick="transmitStandardMessage()">
+            <div class="dock-action-btn p-2.5 bg-primary text-white rounded-full cursor-pointer hover:bg-primary-dark transition shadow-md hidden" id="dock-action-send" onclick="window.transmitStandardMessage()">
                 <i data-lucide="send" class="w-5 h-5"></i>
             </div>
         </div>
@@ -266,21 +266,23 @@
 
 <!-- Non-Modular Application Script Logic Block -->
 <script>
-    // Initialize standard Vector icons
     lucide.createIcons();
 
-    // App state flags
     let currentGlobalMode = 'swarm'; 
     let currentSwarmSubFlow = 'create'; 
     let currentP2PFlow = 'host';
     let activeUsername = localStorage.getItem('omnichat_username') || 'Peer_' + Math.floor(1000 + Math.random() * 9000);
 
-    // Messaging pipeline pointers
-    let activeBugoutInstance = null;
+    // PeerJS Instances and State
+    let localPeerInstance = null;
+    let connectedPeers = new Map(); // Used by Host to store active Guest connections
+    let activeP2PMessageProtocol = null; // Single active Connection object (either direct WebRTC or PeerJS Guest)
+    let activeRoomType = null; // 'host' or 'guest'
+    let currentRoomId = null;
+
+    // WebRTC Manual state
     let localRTCPeerConnection = null;
     let localRTCDataChannel = null;
-    let activeP2PMessageProtocol = null; 
-    let useLocalMockFallback = false;
 
     let activeReplyContextValue = null;
     let audioMediaRecorder = null;
@@ -295,16 +297,15 @@
         ]
     };
 
-    // Initialize username & dynamic colorized avatar profile
     document.getElementById('username-field').value = activeUsername;
     generateDynamicProfileAvatar(activeUsername);
 
-    // Load custom emoji tray
+    // Emoji Box setup
     const customGridEmojis = ['😀','😂','🥺','😍','🙏','👍','🔥','🎉','❤️','💔','🤔','😎','👀','🙌','✨','💯','✅','❌','💪','😜','🙄','😢','👏','🚀'];
     const emojiContainer = document.getElementById('emoji-popover');
     customGridEmojis.forEach(symbol => {
         const cell = document.createElement('div');
-        cell.className = 'emoji-grid-cell';
+        cell.className = 'emoji-grid-cell p-2 text-center text-xl hover:bg-gray-100 rounded cursor-pointer transition';
         cell.innerText = symbol;
         cell.onclick = () => {
             const inputField = document.getElementById('chat-message-input');
@@ -315,7 +316,6 @@
         emojiContainer.appendChild(cell);
     });
 
-    // Helper: Dynamic colorized fallback avatar creator
     function generateDynamicProfileAvatar(nameString) {
         const char = nameString.trim().charAt(0).toUpperCase();
         const avBox = document.getElementById('profile-avatar');
@@ -336,24 +336,24 @@
 
     function toggleGlobalMode(modeStr) {
         currentGlobalMode = modeStr;
-        document.getElementById('mode-tab-swarm').className = modeStr === 'swarm' ? 'seg-tab active flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold' : 'seg-tab flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
-        document.getElementById('mode-tab-p2p').className = modeStr === 'p2p' ? 'seg-tab active flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold' : 'seg-tab flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
+        document.getElementById('mode-tab-swarm').className = modeStr === 'swarm' ? 'seg-tab active flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold bg-white shadow-sm text-text-main' : 'seg-tab flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
+        document.getElementById('mode-tab-p2p').className = modeStr === 'p2p' ? 'seg-tab active flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold bg-white shadow-sm text-text-main' : 'seg-tab flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
         document.getElementById('card-group-swarm').style.display = modeStr === 'swarm' ? 'block' : 'none';
         document.getElementById('card-manual-p2p').style.display = modeStr === 'p2p' ? 'block' : 'none';
     }
 
     function toggleSwarmSubFlow(flowStr) {
         currentSwarmSubFlow = flowStr;
-        document.getElementById('swarm-flow-tab-create').className = flowStr === 'create' ? 'seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-primary-dark' : 'seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
-        document.getElementById('swarm-flow-tab-join').className = flowStr === 'join' ? 'seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-primary-dark' : 'seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
+        document.getElementById('swarm-flow-tab-create').className = flowStr === 'create' ? 'seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold bg-white shadow-sm text-primary-dark' : 'seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
+        document.getElementById('swarm-flow-tab-join').className = flowStr === 'join' ? 'seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold bg-white shadow-sm text-primary-dark' : 'seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
         document.getElementById('swarm-sub-create').style.display = flowStr === 'create' ? 'block' : 'none';
         document.getElementById('swarm-sub-join').style.display = flowStr === 'join' ? 'block' : 'none';
     }
 
     function toggleP2PFlow(flowStr) {
         currentP2PFlow = flowStr;
-        document.getElementById('p2p-flow-tab-host').className = flowStr === 'host' ? 'seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-primary-dark' : 'seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
-        document.getElementById('p2p-flow-tab-guest').className = flowStr === 'guest' ? 'seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-primary-dark' : 'seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
+        document.getElementById('p2p-flow-tab-host').className = flowStr === 'host' ? 'seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold bg-white shadow-sm text-primary-dark' : 'seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
+        document.getElementById('p2p-flow-tab-guest').className = flowStr === 'guest' ? 'seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold bg-white shadow-sm text-primary-dark' : 'seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
         document.getElementById('flow-panel-host').style.display = flowStr === 'host' ? 'block' : 'none';
         document.getElementById('flow-panel-guest').style.display = flowStr === 'guest' ? 'block' : 'none';
     }
@@ -391,7 +391,6 @@
         }
     }
 
-    // --- SWARM / CLOUD CORE ROUTING (ORB-Proof self-healing) ---
     function initiateSwarmChannel(flow) {
         let roomName = "";
         if (flow === 'create') {
@@ -403,90 +402,139 @@
             alertCustom("Please fill in a valid Room Name!");
             return;
         }
+
         destroyConnectionState(true);
         currentRoomId = roomName.toLowerCase().replace(/\s+/g, '-');
 
-        // Check if browser blocked external Bugout or if Bugout library failed to load (ORB guard)
-        if (typeof Bugout === "undefined") {
-            triggerLocalMockSwarm(roomName);
+        if (typeof Peer === "undefined") {
+            alertCustom("PeerJS library is currently unavailable. Check internet connectivity.");
             return;
         }
 
-        try {
-            const hashedRoomId = "chat-swarm-" + encodeURIComponent(currentRoomId);
-            activeBugoutInstance = new Bugout(hashedRoomId);
-            activeP2PMessageProtocol = activeBugoutInstance;
-            useLocalMockFallback = false;
-
-            activeBugoutInstance.on("ready", () => {
-                pushSystemAlertBubble(`Registered with Bugout Swarm Tracker. Searching mesh...`);
-                activateChatInterface(`Room: ${roomName}`, "Waiting for peers to join...");
-                setTimeout(() => {
-                    const peerCount = Object.keys(activeBugoutInstance.peers).length;
-                    if (peerCount === 0) {
-                        pushSystemAlertBubble("Note: Direct trackers are quiet. Fallback simulation layer unlocked below.");
-                        spawnSimulationTriggerButton();
-                    }
-                }, 1800);
-            });
-
-            activeBugoutInstance.on("message", (address, payload) => {
-                if (payload && payload.sender && payload.body) {
-                    renderMessageBubble(payload, 'inbound');
-                }
-            });
-
-            activeBugoutInstance.on("seen", () => updateSwarmNodeHeaderCount());
-            activeBugoutInstance.on("timeout", () => updateSwarmNodeHeaderCount());
-        } catch (err) {
-            triggerLocalMockSwarm(roomName);
+        if (flow === 'create') {
+            setupHostPeer(roomName);
+        } else {
+            setupGuestPeer(roomName);
         }
     }
 
-    function triggerLocalMockSwarm(roomName) {
-        useLocalMockFallback = true;
-        activeP2PMessageProtocol = "MOCKSYNC";
-        activateChatInterface(`Room: ${roomName} (Sandbox)`, "Local Connection Active");
-        pushSystemAlertBubble("BitTorrent Tracker blocked or offline. Switched to sandbox local-loopback messaging simulator.");
-        spawnSimulationTriggerButton();
+    // Swarm Host Role - Acts as the star-topology broker for all guest peers
+    function setupHostPeer(roomName) {
+        activeRoomType = 'host';
+        const hostId = `mesh-room-${currentRoomId}-host`;
+        pushSystemAlertBubble("Initializing WebRTC host node...");
+
+        localPeerInstance = new Peer(hostId, {
+            debug: 1,
+            config: webrtcIceConfiguration
+        });
+
+        localPeerInstance.on('open', (id) => {
+            activateChatInterface(`Room: ${roomName} (Host)`, "Waiting for peers to join...");
+            pushSystemAlertBubble(`Host Open! Tell your friends to Join the room name: "${roomName}"`);
+        });
+
+        localPeerInstance.on('connection', (conn) => {
+            pushSystemAlertBubble(`A new peer has entered the room: ${conn.peer}`);
+            connectedPeers.set(conn.peer, conn);
+            updateSwarmNodeHeaderCount();
+
+            // Listen for incoming messages from this guest peer
+            conn.on('data', (data) => {
+                // Render the received message
+                renderMessageBubble(data, 'inbound');
+                
+                // Relay this message to all other connected peers to sync the room
+                connectedPeers.forEach((otherConn, otherPeerId) => {
+                    if (otherPeerId !== conn.peer) {
+                        otherConn.send(data);
+                    }
+                });
+            });
+
+            conn.on('close', () => {
+                pushSystemAlertBubble(`A peer disconnected: ${conn.peer}`);
+                connectedPeers.delete(conn.peer);
+                updateSwarmNodeHeaderCount();
+            });
+
+            conn.on('error', (err) => {
+                console.error("Connection error with peer:", conn.peer, err);
+            });
+        });
+
+        localPeerInstance.on('error', (err) => {
+            console.error("PeerJS Host Error:", err);
+            if (err.type === 'id-taken') {
+                pushSystemAlertBubble("A host for this room is already online. Auto-joining as a peer instead...");
+                setTimeout(() => {
+                    setupGuestPeer(roomName);
+                }, 1000);
+            } else {
+                alertCustom(`Host connection issue: ${err.type}`);
+            }
+        });
     }
 
-    function spawnSimulationTriggerButton() {
-        const box = document.getElementById('messages-viewport');
-        const trigger = document.createElement('div');
-        trigger.className = 'system-notification animate__animated animate__fadeIn cursor-pointer';
-        trigger.style.background = '#e1f5fe';
-        trigger.style.color = '#0288d1';
-        trigger.innerHTML = `<strong><i data-lucide="bot" class="inline-block mr-1 w-3 h-3"></i> Click to spawn test bot response</strong>`;
-        trigger.onclick = () => {
-            trigger.remove();
-            sendMockResponse("Gondal Local Peer", "P2P Loop test active! Type hello, hi, or send voice / media attachments.");
-        };
-        box.appendChild(trigger);
-        box.scrollTop = box.scrollHeight;
-        lucide.createIcons();
-    }
+    // Swarm Guest Role - Connects directly to the Host node
+    function setupGuestPeer(roomName) {
+        activeRoomType = 'guest';
+        const uniqueGuestId = `mesh-room-${currentRoomId}-peer-${Math.floor(10000 + Math.random() * 90000)}`;
+        pushSystemAlertBubble("Initializing guest discovery...");
 
-    function sendMockResponse(sender, text) {
-        const packet = {
-            id: generateUniqueMessageId(),
-            type: "MSG",
-            sender: sender,
-            body: text,
-            timestamp: getShortTime(),
-            replyTo: null
-        };
-        renderMessageBubble(packet, 'inbound');
+        localPeerInstance = new Peer(uniqueGuestId, {
+            debug: 1,
+            config: webrtcIceConfiguration
+        });
+
+        localPeerInstance.on('open', (id) => {
+            const hostId = `mesh-room-${currentRoomId}-host`;
+            pushSystemAlertBubble("Connecting to room Host...");
+            
+            const conn = localPeerInstance.connect(hostId);
+            activeP2PMessageProtocol = conn;
+
+            conn.on('open', () => {
+                activateChatInterface(`Room: ${roomName}`, "P2P Mesh Tunnel established.");
+                pushSystemAlertBubble("Connected directly to Room Mesh! Say Hello.");
+            });
+
+            conn.on('data', (data) => {
+                renderMessageBubble(data, 'inbound');
+            });
+
+            conn.on('close', () => {
+                pushSystemAlertBubble("Host disconnected. Re-connecting in 5 seconds...");
+                activeP2PMessageProtocol = null;
+                setTimeout(() => {
+                    if (activeRoomType === 'guest') setupGuestPeer(roomName);
+                }, 5000);
+            });
+
+            conn.on('error', (err) => {
+                console.error("Data channel error:", err);
+            });
+        });
+
+        localPeerInstance.on('error', (err) => {
+            console.error("PeerJS Guest Error:", err);
+            if (err.type === 'peer-unavailable') {
+                pushSystemAlertBubble("No active Host found for this Room. Please create the room first or verify room name spelling.");
+            } else {
+                alertCustom(`Guest connection issue: ${err.type}`);
+            }
+        });
     }
 
     function updateSwarmNodeHeaderCount() {
-        if (activeBugoutInstance) {
-            const peerCount = Object.keys(activeBugoutInstance.peers).length;
-            document.getElementById('header-active-status').innerText = `${peerCount} peer(s) connected`;
+        if (activeRoomType === 'host') {
+            const count = connectedPeers.size;
+            document.getElementById('header-active-status').innerText = `${count} active peer(s) inside room`;
+        } else {
+            document.getElementById('header-active-status').innerText = "Connected to room host";
         }
     }
 
-    // --- MANUAL HANDSHAKE WIZARD (STABLE WEBRTC STATE RESOLVER) ---
     function prepareManualWebRTCChannel() {
         localRTCPeerConnection = new RTCPeerConnection(webrtcIceConfiguration);
         localRTCPeerConnection.oniceconnectionstatechange = () => {
@@ -509,7 +557,6 @@
         localRTCDataChannel.onopen = () => {
             pushSystemAlertBubble("Manual P2P RTCDataChannel tunnel bridged successfully.");
             activeP2PMessageProtocol = localRTCDataChannel;
-            useLocalMockFallback = false;
             activateChatInterface("Direct 1-on-1 Connected", "Secure Tunnel Active");
         };
         localRTCDataChannel.onclose = () => { activeP2PMessageProtocol = null; };
@@ -525,7 +572,6 @@
         const btn = document.getElementById('p2p-host-gen-btn');
         btn.disabled = true;
 
-        // Force close existing objects to guarantee clean handshake state machine transitions
         if (localRTCPeerConnection) {
             try { localRTCPeerConnection.close(); } catch(e){}
         }
@@ -597,7 +643,6 @@
         try {
             const decodedGuestPackage = JSON.parse(atob(replyTokenRaw.replace(/[^A-Za-z0-9+/=]/g, "")));
             
-            // Check signalling state to secure stable handshake
             if (localRTCPeerConnection.signalingState === "stable") {
                 alertCustom("Handshake stable already. Connection is currently online.");
                 return;
@@ -612,12 +657,24 @@
     }
 
     function destroyConnectionState(silent = false) {
-        if (activeBugoutInstance) { try { activeBugoutInstance.destroy(); } catch(e){} }
+        // Disconnect all PeerJS objects
+        if (localPeerInstance) {
+            try { localPeerInstance.destroy(); } catch(e){}
+            localPeerInstance = null;
+        }
+        connectedPeers.forEach(conn => {
+            try { conn.close(); } catch(e){}
+        });
+        connectedPeers.clear();
+
+        // Disconnect direct WebRTC objects
         if (localRTCDataChannel) { try { localRTCDataChannel.close(); } catch(e){} }
         if (localRTCPeerConnection) { try { localRTCPeerConnection.close(); } catch(e){} }
+        
         activeP2PMessageProtocol = null;
-        useLocalMockFallback = false;
+        activeRoomType = null;
         currentRoomId = null;
+
         if (!silent) {
             document.getElementById('connection-fallback').style.display = 'flex';
             document.getElementById('messages-viewport').innerHTML = "";
@@ -628,7 +685,6 @@
         }
     }
 
-    // --- STANDARD TRANSFERS AND DOCK PIPELINE ---
     async function transmitStandardMessage() {
         const inputField = document.getElementById('chat-message-input');
         const textValue = inputField.value.trim();
@@ -645,20 +701,8 @@
             createdTime: Date.now()
         };
 
-        if (activeP2PMessageProtocol && activeP2PMessageProtocol !== "MOCKSYNC") {
-            sendPayloadAcrossChannel(payloadPacket);
-        }
+        sendPayloadAcrossChannel(payloadPacket);
         renderMessageBubble(payloadPacket, 'outbound');
-
-        if (useLocalMockFallback) {
-            setTimeout(() => {
-                if (textValue.toLowerCase().includes("hello") || textValue.toLowerCase().includes("hi")) {
-                    sendMockResponse("Simulator Bot", `Hey ${activeUsername}! Local sandbox loopback is active and completely Firebase-free.`);
-                } else {
-                    sendMockResponse("Simulator Bot", "Message looped back locally! In standard network setups, this directly bridges peer-to-peer over your WebRTC channel.");
-                }
-            }, 1000);
-        }
 
         inputField.value = "";
         deactivateReplySystem();
@@ -666,13 +710,13 @@
         toggleEmojiBox(false);
     }
 
-    // Process file attachments (Base64)
+    // Process file attachments (Base64 conversion for raw binary transit)
     async function processLocalAttachment(inputEl) {
         const file = inputEl.files[0];
         if (!file) return;
 
-        if (!activeP2PMessageProtocol) {
-            alertCustom("Join an active mesh before sending attachments.");
+        if (!localPeerInstance && !localRTCPeerConnection) {
+            alertCustom("Please connect to a room or establish a handshake before sending attachments.");
             return;
         }
 
@@ -710,7 +754,7 @@
 
     // Process Voice Notes
     async function toggleAudioRecorder() {
-        if (!activeP2PMessageProtocol) {
+        if (!localPeerInstance && !localRTCPeerConnection) {
             alertCustom("Join an active peer connection before starting voice record.");
             return;
         }
@@ -777,10 +821,22 @@
     }
 
     function sendPayloadAcrossChannel(payloadObj) {
-        if (activeP2PMessageProtocol instanceof Bugout) {
-            activeBugoutInstance.send(payloadObj);
-        } else if (activeP2PMessageProtocol && activeP2PMessageProtocol.readyState === 'open') {
-            activeP2PMessageProtocol.send(JSON.stringify(payloadObj));
+        if (activeRoomType === 'host') {
+            // As a Host, we send it to every connected guest directly
+            connectedPeers.forEach(conn => {
+                if (conn.open) {
+                    conn.send(payloadObj);
+                }
+            });
+        } else if (activeP2PMessageProtocol) {
+            // As a Guest or Manual Connection, we send it to our direct peer line
+            if (activeP2PMessageProtocol.send) {
+                // peerJS Connection object handles JSON objects natively
+                activeP2PMessageProtocol.send(payloadObj);
+            } else if (activeP2PMessageProtocol.readyState === 'open') {
+                // RTCDatachannel takes serialized JSON string
+                activeP2PMessageProtocol.send(JSON.stringify(payloadObj));
+            }
         }
     }
 
@@ -791,46 +847,49 @@
 
         const viewport = document.getElementById('messages-viewport');
         const container = document.createElement('div');
-        container.className = `msg-container ${direction}`;
+        container.className = `msg-container flex ${direction === 'outbound' ? 'justify-end' : 'justify-start'}`;
         container.id = packet.id;
 
         const bubble = document.createElement('div');
-        bubble.className = `msg-bubble animate__animated animate__fadeInUp animate__faster`;
+        bubble.className = `msg-bubble max-w-[65%] p-3 rounded-lg shadow-sm flex flex-col gap-1 animate__animated animate__fadeInUp animate__faster ${
+            direction === 'outbound' ? 'bg-msg-out text-text-main rounded-tr-none' : 'bg-msg-in text-text-main rounded-tl-none'
+        }`;
 
         if (packet.replyTo) {
             const quoteEl = document.createElement('div');
-            quoteEl.className = 'bubble-quote-ref';
+            quoteEl.className = 'bubble-quote-ref text-[11px] p-2 mb-1 rounded-md text-text-muted italic border-l-4 border-primary bg-black/5';
             quoteEl.innerText = packet.replyTo;
             bubble.appendChild(quoteEl);
         }
 
         if (direction === 'inbound' && currentGlobalMode === 'swarm') {
             const label = document.createElement('div');
-            label.className = 'sender-tag';
+            label.className = 'sender-tag text-xs font-bold text-primary-dark';
             label.innerText = packet.sender;
             bubble.appendChild(label);
         }
 
         if (packet.type === 'IMAGE') {
             const img = document.createElement('img');
-            img.className = 'message-media-embed';
+            img.className = 'message-media-embed max-w-full h-auto rounded-lg cursor-pointer hover:opacity-95 transition';
             img.src = packet.body;
             img.onclick = () => window.open(packet.body, '_blank');
             bubble.appendChild(img);
         } else if (packet.type === 'VIDEO') {
             const video = document.createElement('video');
-            video.className = 'message-media-embed';
+            video.className = 'message-media-embed max-w-full h-auto rounded-lg';
             video.src = packet.body;
             video.controls = true;
             bubble.appendChild(video);
         } else if (packet.type === 'AUDIO') {
             const audio = document.createElement('audio');
-            audio.className = 'voice-note-player';
+            audio.className = 'voice-note-player max-w-full mt-1';
             audio.src = packet.body;
             audio.controls = true;
             bubble.appendChild(audio);
         } else {
             const bodySpan = document.createElement('span');
+            bodySpan.className = 'text-sm leading-relaxed break-all';
             bodySpan.innerHTML = formatTextMessageToAnchorLinks(packet.body);
             bubble.appendChild(bodySpan);
         }
@@ -842,10 +901,10 @@
         };
 
         const meta = document.createElement('div');
-        meta.className = 'msg-meta';
+        meta.className = 'msg-meta flex items-center justify-end gap-1 text-[10px] text-text-muted mt-1 self-end';
         meta.innerHTML = `
             <span>${packet.timestamp || getShortTime()}</span>
-            ${direction === 'outbound' ? `<i data-lucide="check-check" style="width: 14px; color: #53bdeb;"></i>` : ''}
+            ${direction === 'outbound' ? `<i data-lucide="check-check" class="w-3.5 h-3.5 text-sky-400"></i>` : ''}
         `;
         bubble.appendChild(meta);
 
@@ -873,7 +932,7 @@
     function pushSystemAlertBubble(alertText) {
         const viewport = document.getElementById('messages-viewport');
         const alertEl = document.createElement('div');
-        alertEl.className = 'system-notification';
+        alertEl.className = 'system-notification self-center bg-yellow-100 text-yellow-800 text-[11px] font-semibold py-1 px-3 rounded-full my-1 shadow-sm';
         alertEl.innerText = alertText;
         viewport.appendChild(alertEl);
         viewport.scrollTop = viewport.scrollHeight;
@@ -881,7 +940,7 @@
 
     function formatTextMessageToAnchorLinks(textStr) {
         const urlExpression = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-        return textStr.replace(urlExpression, '<a href="$1" target="_blank" style="color: #008069; text-decoration: underline;">$1</a>');
+        return textStr.replace(urlExpression, '<a href="$1" target="_blank" class="text-primary hover:underline">$1</a>');
     }
 
     function generateUniqueMessageId() {
@@ -894,22 +953,11 @@
 
     function alertCustom(message) {
         const modal = document.createElement('div');
-        modal.style.position = 'absolute';
-        modal.style.top = '24px';
-        modal.style.left = '50%';
-        modal.style.transform = 'translateX(-50%)';
-        modal.style.background = '#323232';
-        modal.style.color = '#ffffff';
-        modal.style.padding = '12px 24px';
-        modal.style.borderRadius = '8px';
-        modal.style.fontSize = '0.9rem';
-        modal.style.zIndex = '9999';
-        modal.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-        modal.className = 'animate__animated animate__bounceInDown';
+        modal.className = 'animate__animated animate__bounceInDown fixed top-6 left-1/2 -translate-x-1/2 bg-neutral-800 text-white py-3 px-6 rounded-lg text-sm z-[9999] shadow-2xl';
         modal.innerText = message;
         document.body.appendChild(modal);
         setTimeout(() => {
-            modal.className = 'animate__animated animate__fadeOutUp';
+            modal.className = 'animate__animated animate__fadeOutUp fixed top-6 left-1/2 -translate-x-1/2 bg-neutral-800 text-white py-3 px-6 rounded-lg text-sm z-[9999] shadow-2xl';
             setTimeout(() => modal.remove(), 400);
         }, 3200);
     }
@@ -930,6 +978,27 @@
         document.execCommand('copy');
         alertCustom("Security Token Copied to Clipboard!");
     }
+
+    // Expose scope explicitly to handle browser onclick mappings flawlessly
+    window.toggleGlobalMode = toggleGlobalMode;
+    window.toggleSwarmSubFlow = toggleSwarmSubFlow;
+    window.toggleP2PFlow = toggleP2PFlow;
+    window.toggleEmojiBox = toggleEmojiBox;
+    window.triggerFileSelector = triggerFileSelector;
+    window.evaluateInputContext = evaluateInputContext;
+    window.handleEnterSubmit = handleEnterSubmit;
+    window.initiateSwarmChannel = initiateSwarmChannel;
+    window.webrtcCreateOffer = webrtcCreateOffer;
+    window.webrtcCreateAnswer = webrtcCreateAnswer;
+    window.webrtcHostAcceptAnswer = webrtcHostAcceptAnswer;
+    window.destroyConnectionState = destroyConnectionState;
+    window.transmitStandardMessage = transmitStandardMessage;
+    window.processLocalAttachment = processLocalAttachment;
+    window.toggleAudioRecorder = toggleAudioRecorder;
+    window.copyValueToClipboard = copyValueToClipboard;
+    window.handleProfileUpdate = handleProfileUpdate;
+    window.deactivateReplySystem = deactivateReplySystem;
+    window.alertCustom = alertCustom;
 </script>
 
 </body>
