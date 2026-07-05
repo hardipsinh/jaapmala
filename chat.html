@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat | Secure P2P Mesh</title>
+    <title>Chat | Secure Cloud-Mesh Hybrid</title>
     <!-- Premium CSS/CDN Dependencies -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="https://cdn.jsdelivr.net/npm/bugout@latest/dist/bugout.min.js"></script>
@@ -664,8 +664,8 @@
                     <input type="text" id="username-field" class="username-input" placeholder="Your Display Name" onchange="handleProfileUpdate()">
                 </div>
             </div>
-            <div style="color: var(--text-muted); cursor: pointer;" onclick="alertCustom('Vibe Node Settings Activated')">
-                <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
+            <div style="color: var(--text-muted); cursor: pointer;" onclick="alertCustom('Secure Mesh Node Online')">
+                <i data-lucide="shield-check" style="width: 20px; height: 20px; color: var(--primary);"></i>
             </div>
         </div>
 
@@ -676,7 +676,7 @@
                 <div class="seg-tab" id="mode-tab-p2p" onclick="toggleGlobalMode('p2p')">1-on-1 Manual</div>
             </div>
 
-            <!-- TAB 1: GROUP SWARM (BUGOUT / SIMULATOR RESILIENT) -->
+            <!-- TAB 1: GROUP SWARM -->
             <div class="card animate__animated animate__fadeIn" id="card-group-swarm">
                 <h3><i data-lucide="users" style="width:18px;"></i> Swarm Chat Rooms</h3>
                 
@@ -779,9 +779,9 @@
         <div id="connection-fallback">
             <i data-lucide="messages-square" style="width: 80px; height: 80px; color: var(--primary); opacity: 0.75;"></i>
             <h2>Secure Decentralized Chat</h2>
-            <p>Type a room name under the <b>Group Rooms</b> tab, or exchange manual handshake keys to establish an encrypted route.</p>
+            <p>Type any room name under the <b>Group Rooms</b> tab, or exchange manual handshake keys to establish an encrypted route.</p>
             <div style="margin-top: 24px; font-size: 0.75rem; color: var(--text-muted); display:flex; gap:6px; align-items:center;">
-                <i data-lucide="lock" style="width:14px;"></i> Direct browser-to-browser P2P routing. No server databases.
+                <i data-lucide="lock" style="width:14px;"></i> Direct browser-to-browser P2P routing with cloud sync fallback.
             </div>
         </div>
 
@@ -832,8 +832,45 @@
     </div>
 </div>
 
-<script>
-    // Initialize standard Vector icons
+<!-- Firebase Modular Scripts (compliant with rules) -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Global variables exposed by the Canvas preview system
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'omnichat-canvas-fallback';
+    let db = null;
+    let auth = null;
+    let firebaseReady = false;
+    let firestoreUnsubscribe = null;
+    let currentRoomId = null;
+
+    // Initialize Firebase
+    if (typeof __firebase_config !== 'undefined') {
+        try {
+            const firebaseConfig = JSON.parse(__firebase_config);
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            firebaseReady = true;
+
+            // Auth Priority (Firestore Rules Rule 3)
+            const initAuth = async () => {
+                try {
+                    await signInAnonymously(auth);
+                    console.log("Firebase Auth established anonymously.");
+                } catch (err) {
+                    console.warn("Firebase Auth Error:", err);
+                }
+            };
+            initAuth();
+        } catch (e) {
+            console.warn("Firebase initialization skipped or failed:", e);
+        }
+    }
+
+    // Initialize premium standard icons
     lucide.createIcons();
 
     // App state flags
@@ -846,15 +883,15 @@
     let activeBugoutInstance = null;
     let localRTCPeerConnection = null;
     let localRTCDataChannel = null;
-    let activeP2PMessageProtocol = null; // Stores either Bugout instance, RTCDataChannel or Simulator fallbacks
-    let useSimulatorFallback = false;
+    let activeP2PMessageProtocol = null; // Stores Bugout, RTCDataChannel or "CLOUDSYNC"
+    let useCloudSyncFallback = false;
 
     let activeReplyContextValue = null;
     let audioMediaRecorder = null;
     let audioBlobChunks = [];
     let isCurrentlyRecordingAudio = false;
 
-    // Standard STUN servers for robust ICE Gathering
+    // Standard STUN servers for ICE
     const webrtcIceConfiguration = {
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
@@ -863,10 +900,11 @@
         ]
     };
 
-    // Populate Username profile fields
+    // Populate profile inputs
     document.getElementById('username-field').value = activeUsername;
     generateDynamicProfileAvatar(activeUsername);
 
+    // Setup Emoji Collection
     const customGridEmojis = ['😀','😂','🥺','😍','🙏','👍','🔥','🎉','❤️','💔','🤔','😎','👀','🙌','✨','💯','✅','❌','💪','😜','🙄','😢','👏','🚀'];
     const emojiContainer = document.getElementById('emoji-popover');
     customGridEmojis.forEach(symbol => {
@@ -882,7 +920,7 @@
         emojiContainer.appendChild(cell);
     });
 
-    // Generate Dynamic fallbacks for Avatars
+    // Dynamic colorized fallback avatar creator
     function generateDynamicProfileAvatar(nameString) {
         const char = nameString.trim().charAt(0).toUpperCase();
         const avBox = document.getElementById('profile-avatar');
@@ -901,6 +939,7 @@
         generateDynamicProfileAvatar(activeUsername);
     }
 
+    // Toggle View State Controllers
     function toggleGlobalMode(modeStr) {
         currentGlobalMode = modeStr;
         document.getElementById('mode-tab-swarm').className = modeStr === 'swarm' ? 'seg-tab active' : 'seg-tab';
@@ -962,6 +1001,7 @@
         }
     }
 
+    // --- SWARM ENGINE (BUGOUT WITH IMMERSIVE FIREBASE FALLBACK) ---
     function initiateSwarmChannel(flow) {
         let roomName = "";
         if (flow === 'create') {
@@ -976,32 +1016,32 @@
         }
 
         destroyConnectionState(true);
+        currentRoomId = roomName.toLowerCase().replace(/\s+/g, '-');
 
-        const hashedRoomId = "chat-swarm-" + encodeURIComponent(roomName.toLowerCase().replace(/\s+/g, '-'));
-        
-        // Robust safety gateway: Detect Bugout connection restrictions (blocked trackers/sockets)
+        // Check if WebTorrents/Bugout is functional. In Canvas, trackers are blocked.
         if (typeof Bugout === "undefined") {
-            triggerSandboxSimulator(roomName);
+            triggerCloudSyncSwarm(roomName);
             return;
         }
 
         try {
+            const hashedRoomId = "chat-swarm-" + encodeURIComponent(currentRoomId);
             activeBugoutInstance = new Bugout(hashedRoomId);
             activeP2PMessageProtocol = activeBugoutInstance;
-            useSimulatorFallback = false;
+            useCloudSyncFallback = false;
 
             activeBugoutInstance.on("ready", () => {
                 pushSystemAlertBubble(`Successfully registered to DHT Swarm Tracker.`);
                 activateChatInterface(`Room: ${roomName}`, "Waiting for peers to join...");
                 
-                // Keep-alive heartbeat verification
+                // Track if peer discovery is blocked
                 setTimeout(() => {
                     const peerCount = Object.keys(activeBugoutInstance.peers).length;
-                    if(peerCount === 0) {
-                        pushSystemAlertBubble("Note: Direct tracker connection is open, but no active peers found. You can simulate chat tests locally below!");
-                        spawnSimulationTriggerButton();
+                    if (peerCount === 0) {
+                        pushSystemAlertBubble("Note: P2P trackers blocked or idle. Upgrading room automatically to cloud-sync coordination...");
+                        triggerCloudSyncSwarm(roomName);
                     }
-                }, 5000);
+                }, 1500);
             });
 
             activeBugoutInstance.on("message", (address, payload) => {
@@ -1014,51 +1054,67 @@
             activeBugoutInstance.on("timeout", () => updateSwarmNodeHeaderCount());
 
         } catch (err) {
-            console.warn("Tracker restricted, rolling over to localized sandbox simulator.", err);
-            triggerSandboxSimulator(roomName);
+            console.warn("Tracker exception. Seamlessly transitioning to real-time cloud-sync channel...", err);
+            triggerCloudSyncSwarm(roomName);
         }
     }
 
-    function triggerSandboxSimulator(roomName) {
-        useSimulatorFallback = true;
-        activeP2PMessageProtocol = "SIMULATOR";
-        
-        activateChatInterface(`Room: ${roomName} (Sandbox Mode)`, "Resilient Offline Local Tunnel");
-        pushSystemAlertBubble("Engine Alert: Torrents/WS trackers blocked by sandbox or browser configurations. Sandboxed local simulator triggered.");
-        
-        // Spawn helper bot interaction inside sandboxed P2P simulator to prove pipeline is 100% active
-        setTimeout(() => {
-            sendMockResponse("System Assistant", "Hey there! Decentralized Bugout DHT tracks are restricted by your browser/network (e.g. adblocker, corporate firewall). No worries, sandbox simulator is active. You can chat, record voice notes, or attach files to test the exact UI responsiveness!");
-        }, 1200);
-    }
+    // Dynamic Cloud-Sync mesh fallback for restricted sandbox canvas previews (COMPLIANT WITH RULE 1, 2, 3)
+    async function triggerCloudSyncSwarm(roomName) {
+        useCloudSyncFallback = true;
+        activeP2PMessageProtocol = "CLOUDSYNC";
 
-    function spawnSimulationTriggerButton() {
-        const box = document.getElementById('messages-viewport');
-        const trigger = document.createElement('div');
-        trigger.className = 'system-notification animate__animated animate__fadeIn';
-        trigger.style.background = '#e1f5fe';
-        trigger.style.color = '#0288d1';
-        trigger.style.cursor = 'pointer';
-        trigger.innerHTML = `<strong><i data-lucide="bot"></i> Click to spawn sandbox test bot!</strong>`;
-        trigger.onclick = () => {
-            trigger.remove();
-            sendMockResponse("Gondal Mesh Peer", "P2P simulation active. Hello from the Gondal decentralized hub!");
-        };
-        box.appendChild(trigger);
-        box.scrollTop = box.scrollHeight;
-        lucide.createIcons();
-    }
+        if (!firebaseReady || !db) {
+            activateChatInterface(`Room: ${roomName} (Offline Mode)`, "Local loop active");
+            pushSystemAlertBubble("No Firebase config detected. Group chat running in offline loop.");
+            return;
+        }
 
-    function sendMockResponse(sender, text) {
-        const packet = {
-            id: generateUniqueMessageId(),
-            type: "MSG",
-            sender: sender,
-            body: text,
-            timestamp: getShortTime(),
-            replyTo: null
-        };
-        renderMessageBubble(packet, 'inbound');
+        // Wait for Anonymous Auth completion (Rule 3)
+        if (!auth.currentUser) {
+            pushSystemAlertBubble("Authenticating room pipeline securely...");
+            try {
+                await signInAnonymously(auth);
+            } catch (err) {
+                pushSystemAlertBubble("Secure authorization failed. Reverting to local fallback.");
+                return;
+            }
+        }
+
+        activateChatInterface(`Room: ${roomName}`, "Secure Cloud-Mesh Connected");
+        pushSystemAlertBubble("Connected to cloud synchronization layer. Messages will sync in real-time across tabs/devices!");
+
+        // Set up real-time listener (Rule 1 & Rule 2 compliant)
+        // STRICT PATH: /artifacts/{appId}/public/data/messages
+        const publicCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+        
+        // RULE 2: No complex queries. Fetch all data with simple collection() and filter/sort in memory.
+        if (firestoreUnsubscribe) firestoreUnsubscribe();
+        
+        firestoreUnsubscribe = onSnapshot(publicCollectionRef, (snapshot) => {
+            // Read and filter documents in JavaScript memory (strictly compliant with Rule 2)
+            const syncedMessages = [];
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.room === currentRoomId) {
+                    syncedMessages.push(data);
+                }
+            });
+
+            // Sort by numerical timestamp in JavaScript memory
+            syncedMessages.sort((a, b) => a.createdTime - b.createdTime);
+
+            // Re-render chat area safely with updated message frames
+            const viewport = document.getElementById('messages-viewport');
+            viewport.innerHTML = ""; // Purge old frames safely
+
+            syncedMessages.forEach(msg => {
+                const direction = msg.sender === activeUsername ? 'outbound' : 'inbound';
+                renderMessageBubble(msg, direction);
+            });
+        }, (error) => {
+            console.error("Firestore synchronizer issue:", error);
+        });
     }
 
     function updateSwarmNodeHeaderCount() {
@@ -1068,6 +1124,7 @@
         }
     }
 
+    // --- P2P MANUAL HANDSHAKE WIZARD (WEBRTC) ---
     function prepareManualWebRTCChannel() {
         localRTCPeerConnection = new RTCPeerConnection(webrtcIceConfiguration);
 
@@ -1079,9 +1136,6 @@
                 activateChatInterface("Direct 1-on-1 Connected", "Secure P2P Tunnel Active");
                 document.getElementById('header-active-indicator').className = "status-pill";
                 document.getElementById('header-active-indicator').innerText = "Encrypted";
-                
-                // Cache configuration keys for silent auto-reconnect fallback
-                localStorage.setItem('dayaro_p2p_active_config', 'established');
             } else if (state === 'disconnected' || state === 'failed') {
                 pushSystemAlertBubble("Direct P2P socket pipeline disrupted. Attempting re-routing...");
                 document.getElementById('header-active-indicator').className = "status-pill offline";
@@ -1101,7 +1155,7 @@
         localRTCDataChannel.onopen = () => {
             pushSystemAlertBubble("Manual RTCDataChannel link verified. Secure data routing unlocked.");
             activeP2PMessageProtocol = localRTCDataChannel;
-            useSimulatorFallback = false;
+            useCloudSyncFallback = false;
             activateChatInterface("Direct 1-on-1 Connected", "Secure Tunnel Active");
         };
 
@@ -1161,6 +1215,8 @@
             return;
         }
 
+        const sanitizedHostToken = hostTokenRaw.replace(/[^A-Za-z0-9+/=]/g, "");
+
         const btn = document.getElementById('p2p-guest-gen-btn');
         btn.innerHTML = `<i class="lucide-loader spinner-active" data-lucide="loader"></i> Formulating Answer...`;
         btn.disabled = true;
@@ -1181,13 +1237,14 @@
         };
 
         try {
-            const decodedHostPackage = JSON.parse(atob(hostTokenRaw));
-            await localRTCPeerConnection.setRemoteDescription(new RTCSessionDescription(decodedHostPackage.sdp));
+            const decodedHostPackage = JSON.parse(atob(sanitizedHostToken));
+            await localRTCPeerConnection.setRemoteDescription(decodedHostPackage.sdp);
             
             const answerSDP = await localRTCPeerConnection.createAnswer();
             await localRTCPeerConnection.setLocalDescription(answerSDP);
         } catch (err) {
-            alertCustom("Invalid host token format parsed. Please verify strings match.");
+            console.error("WebRTC Guest Error:", err);
+            alertCustom("Error Parsing Invite Token: " + err.message);
             btn.innerHTML = `<i data-lucide="shield-check" style="width:16px;"></i> Generate Reply Token`;
             btn.disabled = false;
             lucide.createIcons();
@@ -1201,20 +1258,21 @@
             return;
         }
 
+        if (!localRTCPeerConnection) {
+            alertCustom("Host session has expired! Click 'Generate Invite Token' first before applying replies.");
+            return;
+        }
+
+        const sanitizedReplyToken = replyTokenRaw.replace(/[^A-Za-z0-9+/=]/g, "");
+
         try {
-            const decodedGuestPackage = JSON.parse(atob(replyTokenRaw));
-            await localRTCPeerConnection.setRemoteDescription(new RTCSessionDescription(decodedGuestPackage.sdp));
+            const decodedGuestPackage = JSON.parse(atob(sanitizedReplyToken));
+            await localRTCPeerConnection.setRemoteDescription(decodedGuestPackage.sdp);
             pushSystemAlertBubble("Accepting guest remote pathing... Negotiating WebRTC data stream.");
         } catch (err) {
-            alertCustom("Invalid response token format parsed. Ensure guest copied their exact complete string.");
+            console.error("WebRTC Host Accept Error:", err);
+            alertCustom("Signaling Error: " + err.message);
         }
-    }
-
-    function activateChatInterface(titleText, subtitleText) {
-        document.getElementById('connection-fallback').style.display = 'none';
-        document.getElementById('header-active-name').innerText = titleText;
-        document.getElementById('header-active-status').innerText = subtitleText;
-        document.getElementById('messages-viewport').innerHTML = ""; 
     }
 
     function destroyConnectionState(silent = false) {
@@ -1233,8 +1291,14 @@
             localRTCPeerConnection = null;
         }
 
+        if (firestoreUnsubscribe) {
+            firestoreUnsubscribe();
+            firestoreUnsubscribe = null;
+        }
+
         activeP2PMessageProtocol = null;
-        useSimulatorFallback = false;
+        useCloudSyncFallback = false;
+        currentRoomId = null;
 
         if (!silent) {
             document.getElementById('connection-fallback').style.display = 'flex';
@@ -1246,7 +1310,8 @@
         }
     }
 
-    function transmitStandardMessage() {
+    // Dispatch Standard messages across the active pipeline
+    async function transmitStandardMessage() {
         const inputField = document.getElementById('chat-message-input');
         const textValue = inputField.value.trim();
         if (!textValue) return;
@@ -1262,21 +1327,27 @@
             sender: activeUsername,
             body: textValue,
             timestamp: getShortTime(),
-            replyTo: activeReplyContextValue
+            replyTo: activeReplyContextValue,
+            room: currentRoomId,
+            createdTime: Date.now()
         };
 
-        sendPayloadAcrossChannel(payloadPacket);
-        renderMessageBubble(payloadPacket, 'outbound');
-
-        // Sandbox simulator interactive logic
-        if(useSimulatorFallback) {
-            setTimeout(() => {
-                if (textValue.toLowerCase().includes("hello") || textValue.toLowerCase().includes("hi")) {
-                    sendMockResponse("Simulator Bot", `Hey ${activeUsername}! Hope you like the smooth fluid design. Send a voice memo or photo to test media rendering!`);
-                } else {
-                    sendMockResponse("Simulator Bot", "Message processed! Under real network conditions, this is routed directly peer-to-peer across the encrypted mesh.");
+        if (useCloudSyncFallback) {
+            // Firestore Synchronization Write Pipeline (Rule 1 & Rule 3 Guarded)
+            if (firebaseReady && db && auth.currentUser) {
+                try {
+                    const publicCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+                    await addDoc(publicCollectionRef, payloadPacket);
+                } catch (e) {
+                    console.error("Cloud write synchronization failure:", e);
+                    renderMessageBubble(payloadPacket, 'outbound'); // local echo if write error
                 }
-            }, 1000);
+            } else {
+                renderMessageBubble(payloadPacket, 'outbound'); // Offline loop fallback
+            }
+        } else {
+            sendPayloadAcrossChannel(payloadPacket);
+            renderMessageBubble(payloadPacket, 'outbound');
         }
 
         inputField.value = "";
@@ -1285,6 +1356,7 @@
         toggleEmojiBox(false);
     }
 
+    // Process file attachments (Image/Video)
     function processLocalAttachment(inputEl) {
         const file = inputEl.files[0];
         if (!file) return;
@@ -1303,32 +1375,44 @@
         const reader = new FileReader();
         pushSystemAlertBubble(`Encoding dynamic file packet [${file.name}]...`);
         
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
             const payloadPacket = {
                 id: generateUniqueMessageId(),
                 type: fileTypeGroup === 'image' ? 'IMAGE' : 'VIDEO',
                 sender: activeUsername,
-                body: event.target.result, 
+                body: event.target.result, // base64 payload
                 fileName: file.name,
                 timestamp: getShortTime(),
-                replyTo: activeReplyContextValue
+                replyTo: activeReplyContextValue,
+                room: currentRoomId,
+                createdTime: Date.now()
             };
 
-            sendPayloadAcrossChannel(payloadPacket);
-            renderMessageBubble(payloadPacket, 'outbound');
+            if (useCloudSyncFallback) {
+                if (firebaseReady && db && auth.currentUser) {
+                    try {
+                        const publicCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+                        await addDoc(publicCollectionRef, payloadPacket);
+                    } catch (e) {
+                        console.error("Cloud file upload failed:", e);
+                        renderMessageBubble(payloadPacket, 'outbound');
+                    }
+                } else {
+                    renderMessageBubble(payloadPacket, 'outbound');
+                }
+            } else {
+                sendPayloadAcrossChannel(payloadPacket);
+                renderMessageBubble(payloadPacket, 'outbound');
+            }
+            
             deactivateReplySystem();
             inputEl.value = ""; 
-
-            if(useSimulatorFallback) {
-                setTimeout(() => {
-                    sendMockResponse("Simulator Bot", `Received your ${fileTypeGroup} attachment! The base64 buffer was successfully rendered on the screen layout.`);
-                }, 1000);
-            }
         };
 
         reader.readAsDataURL(file);
     }
 
+    // Process Voice note recordings
     async function toggleAudioRecorder() {
         if (!activeP2PMessageProtocol) {
             alertCustom("Join an active peer connection before starting voice record.");
@@ -1356,24 +1440,36 @@
             audioMediaRecorder.onstop = () => {
                 const audioBlob = new Blob(audioBlobChunks, { type: 'audio/webm' });
                 const reader = new FileReader();
-                reader.onload = (event) => {
+                reader.onload = async (event) => {
                     const payloadPacket = {
                         id: generateUniqueMessageId(),
                         type: 'AUDIO',
                         sender: activeUsername,
-                        body: event.target.result, 
+                        body: event.target.result, // base64 audio payload
                         timestamp: getShortTime(),
-                        replyTo: activeReplyContextValue
+                        replyTo: activeReplyContextValue,
+                        room: currentRoomId,
+                        createdTime: Date.now()
                     };
-                    sendPayloadAcrossChannel(payloadPacket);
-                    renderMessageBubble(payloadPacket, 'outbound');
-                    deactivateReplySystem();
 
-                    if(useSimulatorFallback) {
-                        setTimeout(() => {
-                            sendMockResponse("Simulator Bot", "Playable voice note parsed! Dynamic local Base64 audio streaming completed.");
-                        }, 1200);
+                    if (useCloudSyncFallback) {
+                        if (firebaseReady && db && auth.currentUser) {
+                            try {
+                                const publicCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+                                await addDoc(publicCollectionRef, payloadPacket);
+                            } catch (e) {
+                                console.error("Cloud audio upload failed:", e);
+                                renderMessageBubble(payloadPacket, 'outbound');
+                            }
+                        } else {
+                            renderMessageBubble(payloadPacket, 'outbound');
+                        }
+                    } else {
+                        sendPayloadAcrossChannel(payloadPacket);
+                        renderMessageBubble(payloadPacket, 'outbound');
                     }
+                    
+                    deactivateReplySystem();
                 };
                 reader.readAsDataURL(audioBlob);
 
@@ -1401,10 +1497,10 @@
     }
 
     function sendPayloadAcrossChannel(payloadObj) {
-        if (!activeP2PMessageProtocol || activeP2PMessageProtocol === "SIMULATOR") return;
+        if (!activeP2PMessageProtocol || activeP2PMessageProtocol === "CLOUDSYNC") return;
 
         if (activeP2PMessageProtocol instanceof Bugout) {
-            activeP2PMessageProtocol.send(payloadObj);
+            activeBugoutInstance.send(payloadObj);
         } else if (activeP2PMessageProtocol.readyState === 'open') {
             activeP2PMessageProtocol.send(JSON.stringify(payloadObj));
         }
@@ -1415,9 +1511,15 @@
             stopRecordingUIState();
         }
 
+        // Avoid duplicated local display when listing from Realtime database syncs
+        if (useCloudSyncFallback && direction === 'outbound' && document.getElementById(packet.id)) {
+            return;
+        }
+
         const viewport = document.getElementById('messages-viewport');
         const container = document.createElement('div');
         container.className = `msg-container ${direction}`;
+        container.id = packet.id;
 
         const bubble = document.createElement('div');
         bubble.className = `msg-bubble animate__animated animate__fadeInUp animate__faster`;
@@ -1503,14 +1605,6 @@
         lucide.createIcons();
     }
 
-    function generateUniqueMessageId() {
-        return 'msg_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-    }
-
-    function getShortTime() {
-        return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
     function formatTextMessageToAnchorLinks(textStr) {
         const urlExpression = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
         return textStr.replace(urlExpression, '<a href="$1" target="_blank" style="color: var(--primary); text-decoration: underline;">$1</a>');
@@ -1548,6 +1642,26 @@
             setTimeout(() => modal.remove(), 400);
         }, 3200);
     }
+
+    // Expose functions globally to maintain standard inline layout actions
+    window.toggleGlobalMode = toggleGlobalMode;
+    window.toggleSwarmSubFlow = toggleSwarmSubFlow;
+    window.toggleP2PFlow = toggleP2PFlow;
+    window.toggleEmojiBox = toggleEmojiBox;
+    window.triggerFileSelector = triggerFileSelector;
+    window.evaluateInputContext = evaluateInputContext;
+    window.handleEnterSubmit = handleEnterSubmit;
+    window.initiateSwarmChannel = initiateSwarmChannel;
+    window.webrtcCreateOffer = webrtcCreateOffer;
+    window.webrtcCreateAnswer = webrtcCreateAnswer;
+    window.webrtcHostAcceptAnswer = webrtcHostAcceptAnswer;
+    window.destroyConnectionState = destroyConnectionState;
+    window.transmitStandardMessage = transmitStandardMessage;
+    window.processLocalAttachment = processLocalAttachment;
+    window.toggleAudioRecorder = toggleAudioRecorder;
+    window.deactivateReplySystem = deactivateReplySystem;
+    window.copyValueToClipboard = copyValueToClipboard;
+    window.handleProfileUpdate = handleProfileUpdate;
 </script>
 
 </body>
