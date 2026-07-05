@@ -697,7 +697,7 @@ let db, auth, currentUser,appId = null;
 
             // Auto sync: 1 Mala Complete OR every 10 counts
             if (currentUser && !currentUser.isAnonymous) {
-                if (malaCompletedThisTurn || state.cur % 10 === 0) {
+                if (malaCompletedThisTurn) {
                     pushToCloudData();
                 }
             }
