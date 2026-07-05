@@ -4,850 +4,282 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat | Secure Cloud-Mesh Hybrid</title>
-    <!-- Premium CSS/CDN Dependencies -->
+    <!-- Premium UI / CSS Styling CDN Dependencies -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/bugout@latest/dist/bugout.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bugout@latest/dist/bugout.min.js" onerror="console.warn('Bugout DHT script blocked by browser ORB / CORS rules. Falling back to Cloud-Mesh Sync.')"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    <style>
-        :root {
-            --primary: #008069;
-            --primary-dark: #005c4b;
-            --primary-light: #e6f6ec;
-            --bg-body: #eae6df;
-            --bg-chat: #efeae2;
-            --bg-panel: #ffffff;
-            --bg-sidebar: #f0f2f5;
-            --msg-out: #d9fdd3;
-            --msg-in: #ffffff;
-            --text-main: #111b21;
-            --text-muted: #667781;
-            --border: #d1d7db;
-            --system-yellow: #ffe596;
-            --reply-bg: rgba(0, 0, 0, 0.05);
-            --danger: #ea0038;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body {
-            background: linear-gradient(180deg, var(--primary) 127px, var(--bg-body) 127px);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        /* Top-level Layout container */
-        #app {
-            width: 100%;
-            max-width: 1600px;
-            height: 100vh;
-            display: flex;
-            background: var(--bg-panel);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        @media (min-width: 1440px) {
-            #app {
-                height: 95vh;
-                width: 95vw;
-                border-radius: 12px;
-                border: 1px solid rgba(0, 0, 0, 0.05);
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#008069',
+                        'primary-dark': '#005c4b',
+                        'primary-light': '#e6f6ec',
+                        'bg-body': '#eae6df',
+                        'bg-chat': '#efeae2',
+                        'bg-panel': '#ffffff',
+                        'bg-sidebar': '#f0f2f5',
+                        'msg-out': '#d9fdd3',
+                        'msg-in': '#ffffff',
+                        'text-main': '#111b21',
+                        'text-muted': '#667781',
+                        'border-default': '#d1d7db',
+                        'system-yellow': '#ffe596',
+                        'danger': '#ea0038'
+                    }
+                }
             }
         }
-
-        #sidebar {
-            width: 420px;
-            min-width: 360px;
-            background: var(--bg-panel);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-            transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+    </script>
+    <style>
+        body {
+            background: linear-gradient(180deg, #008069 127px, #eae6df 127px);
         }
-
-        .sb-header {
-            background: var(--bg-sidebar);
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .profile-section {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
-        }
-
-        .avatar-container {
-            position: relative;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            overflow: hidden;
-            background: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .username-input {
-            border: none;
-            background: transparent;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--text-main);
-            width: 100%;
-            outline: none;
-            padding: 4px;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.2s;
-        }
-
-        .username-input:focus {
-            border-color: var(--primary);
-        }
-
-        .sb-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            background: #ffffff;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .card {
-            background: var(--bg-sidebar);
-            border-radius: 10px;
-            padding: 16px;
-            border: 1px solid var(--border);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-            transition: all 0.2s ease;
-        }
-
-        .card h3 {
-            font-size: 0.95rem;
-            color: var(--primary-dark);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-        }
-
-        .segmented-tabs {
-            display: flex;
-            background: #e9edef;
-            border-radius: 8px;
-            padding: 3px;
-            margin-bottom: 12px;
-        }
-
-        .seg-tab {
-            flex: 1;
-            text-align: center;
-            padding: 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            transition: background 0.2s, color 0.2s;
-            user-select: none;
-        }
-
-        .seg-tab.active {
-            background: #ffffff;
-            color: var(--primary-dark);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .input-group {
-            margin-bottom: 12px;
-            position: relative;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.9rem;
-            color: var(--text-main);
-            outline: none;
-            background: #ffffff;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        input[type="text"]:focus, textarea:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(0, 128, 105, 0.1);
-        }
-
-        textarea {
-            resize: none;
-            height: 65px;
-            font-family: monospace;
-            font-size: 0.75rem;
-            line-height: 1.3;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 10px 16px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background-color 0.15s ease, transform 0.1s;
-            user-select: none;
-        }
-
-        .btn:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn.outline {
-            background: transparent;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-        }
-
-        .btn.outline:hover {
-            background: rgba(0, 128, 105, 0.05);
-        }
-
-        .copy-badge-btn {
-            position: absolute;
-            right: 8px;
-            top: 25px;
-            background: var(--bg-sidebar);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .copy-badge-btn:hover {
-            background: #e1e5e8;
-            color: var(--text-main);
-        }
-
-        #chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-chat);
-            position: relative;
-            height: 100%;
-        }
-
-        #connection-fallback {
-            position: absolute;
-            inset: 0;
-            background: var(--bg-sidebar);
-            z-index: 5;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            text-align: center;
-            padding: 40px;
-        }
-
-        #connection-fallback h2 {
-            color: var(--text-main);
-            margin: 16px 0 8px;
-            font-weight: 400;
-        }
-
-        #connection-fallback p {
-            max-width: 350px;
-            font-size: 0.9rem;
-            line-height: 1.4;
-        }
-
-        #chat-header {
-            background: var(--bg-sidebar);
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            z-index: 2;
-        }
-
-        .active-user-meta {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .active-user-meta h4 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-
-        .active-user-meta span {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .disconnect-btn {
-            background: transparent;
-            border: 1px solid rgba(234, 0, 56, 0.3);
-            color: var(--danger);
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .disconnect-btn:hover {
-            background: rgba(234, 0, 56, 0.05);
-            border-color: var(--danger);
-        }
-
         #messages-viewport {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px 8%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.035'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            scroll-behavior: smooth;
         }
-
-        .msg-container {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-        }
-
-        .msg-container.outbound {
-            align-items: flex-end;
-        }
-
-        .msg-container.inbound {
-            align-items: flex-start;
-        }
-
-        .msg-bubble {
-            max-width: 65%;
-            padding: 6px 10px 8px 10px;
-            border-radius: 8px;
-            position: relative;
-            font-size: 0.93rem;
-            color: var(--text-main);
-            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.13);
-            cursor: pointer;
-            user-select: text;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.15s ease;
-        }
-
-        .msg-bubble:hover {
-            transform: scale(1.01);
-        }
-
-        .msg-container.outbound .msg-bubble {
-            background: var(--msg-out);
-            border-top-right-radius: 0;
-        }
-
-        .msg-container.inbound .msg-bubble {
-            background: var(--msg-in);
-            border-top-left-radius: 0;
-        }
-
-        .sender-tag {
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: var(--primary-dark);
-            margin-bottom: 4px;
-        }
-
-        .message-media-embed {
-            max-width: 100%;
-            border-radius: 6px;
-            margin-top: 4px;
-            margin-bottom: 4px;
-            max-height: 280px;
-            object-fit: contain;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .voice-note-player {
-            width: 240px;
-            height: 38px;
-            margin-top: 4px;
-            outline: none;
-        }
-
-        .msg-meta {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            align-self: flex-end;
-            margin-top: 4px;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            margin-left: 20px;
-        }
-
         .bubble-quote-ref {
             background: rgba(0, 0, 0, 0.05);
-            border-left: 4px solid var(--primary);
-            padding: 6px 8px;
-            border-radius: 4px;
-            margin-bottom: 6px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            border-top-right-radius: 4px;
-            border-bottom-right-radius: 4px;
-            max-height: 50px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            border-left: 4px solid #008069;
         }
-
-        #active-reply-banner {
-            display: none;
-            background: #f0f2f5;
-            padding: 8px 24px;
-            border-top: 1px solid var(--border);
-            align-items: center;
-            justify-content: space-between;
-            animation: slideInUp 0.2s ease-out;
-            z-index: 3;
-        }
-
-        .reply-meta-wrap {
-            border-left: 4px solid var(--primary);
-            padding-left: 12px;
-            background: rgba(0, 0, 0, 0.03);
-            border-radius: 4px;
-            flex: 1;
-            padding-top: 4px;
-            padding-bottom: 4px;
-        }
-
-        .reply-meta-title {
-            font-size: 0.75rem;
-            color: var(--primary-dark);
-            font-weight: bold;
-            margin-bottom: 2px;
-        }
-
-        .reply-meta-text {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 600px;
-        }
-
-        #message-dock {
-            background: var(--bg-sidebar);
-            padding: 8px 16px;
-            display: flex;
-            align-items: flex-end;
-            gap: 12px;
-            border-top: 1px solid var(--border);
-            z-index: 2;
-        }
-
-        .dock-action-btn {
-            color: var(--text-muted);
-            padding: 8px;
-            cursor: pointer;
-            border-radius: 50%;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .dock-action-btn:hover {
-            background: #e1e5e8;
-            color: var(--text-main);
-        }
-
-        .dock-text-input-wrapper {
-            flex: 1;
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 2px 16px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        #chat-message-input {
-            width: 100%;
-            border: none;
-            outline: none;
-            font-size: 0.95rem;
-            padding: 8px 0;
-            max-height: 120px;
-            overflow-y: auto;
-            resize: none;
-            background: transparent;
-            color: var(--text-main);
-        }
-
-        #emoji-popover {
-            display: none;
-            position: absolute;
-            bottom: 70px;
-            left: 16px;
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-            padding: 12px;
-            width: 280px;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 8px;
-            z-index: 100;
-            border: 1px solid var(--border);
-        }
-
-        .emoji-grid-cell {
-            font-size: 1.4rem;
-            cursor: pointer;
-            text-align: center;
-            transition: transform 0.1s;
-            user-select: none;
-        }
-
-        .emoji-grid-cell:hover {
-            transform: scale(1.2);
-        }
-
-        .system-notification {
-            align-self: center;
-            background: var(--system-yellow);
-            color: #303030;
-            font-size: 0.78rem;
-            padding: 6px 14px;
-            border-radius: 8px;
-            margin: 12px 0;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-            text-align: center;
-            max-width: 80%;
-        }
-
-        .status-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: #c3e6cb;
-            color: #155724;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 0.72rem;
-            font-weight: 700;
-        }
-
-        .status-pill.offline {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
+        /* Custom scrollbars */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
-
         ::-webkit-scrollbar-thumb {
             background-color: rgba(11, 20, 26, 0.2);
             border-radius: 4px;
         }
-
         ::-webkit-scrollbar-track {
             background: transparent;
         }
-
         .spinner-active {
             animation: spin 1s linear infinite;
         }
-
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-
-        @media (max-width: 768px) {
-            #sidebar {
-                width: 100%;
-                min-width: 100%;
-                position: absolute;
-                inset: 0;
-            }
-            #sidebar.hidden-mobile {
-                transform: translateX(-100%);
-            }
-            #chat-area {
-                width: 100%;
-            }
-        }
     </style>
 </head>
-<body>
+<body class="h-screen w-screen flex items-center justify-center overflow-hidden">
 
-<div id="app">
+<div id="app" class="w-full h-full max-w-[1600px] xl:h-[95vh] xl:w-[95vw] xl:rounded-lg shadow-2xl flex bg-bg-panel relative overflow-hidden transition-all duration-300">
+    
     <!-- LEFT SIDEBAR -->
-    <div id="sidebar">
-        <div class="sb-header">
-            <div class="profile-section">
-                <div class="avatar-container" id="profile-avatar">U</div>
-                <div style="flex:1;">
-                    <input type="text" id="username-field" class="username-input" placeholder="Your Display Name" onchange="handleProfileUpdate()">
+    <aside id="sidebar" class="w-[420px] min-w-[360px] h-full bg-bg-panel border-r border-border-default flex flex-col z-10 transition-transform duration-300">
+        <!-- Profile Header -->
+        <div class="sb-header bg-bg-sidebar py-3 px-4 flex items-center justify-between border-b border-border-default">
+            <div class="profile-section flex items-center gap-3 flex-1">
+                <div id="profile-avatar" class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-sm text-lg transition-all duration-200">U</div>
+                <div class="flex-1">
+                    <input type="text" id="username-field" class="username-input bg-transparent border-b border-transparent hover:border-primary focus:border-primary text-sm font-semibold text-text-main w-full outline-none py-1 px-1 transition-all duration-200" placeholder="Display Name">
                 </div>
             </div>
-            <div style="color: var(--text-muted); cursor: pointer;" onclick="alertCustom('Secure Mesh Node Online')">
-                <i data-lucide="shield-check" style="width: 20px; height: 20px; color: var(--primary);"></i>
+            <div class="text-text-muted hover:text-text-main cursor-pointer" onclick="window.alertCustom('Secure Node Sync Active')">
+                <i data-lucide="shield-check" class="w-5 h-5 text-primary"></i>
             </div>
         </div>
 
-        <div class="sb-content">
-            <!-- Connection Architecture Tabs -->
-            <div class="segmented-tabs">
-                <div class="seg-tab active" id="mode-tab-swarm" onclick="toggleGlobalMode('swarm')">Group Rooms</div>
-                <div class="seg-tab" id="mode-tab-p2p" onclick="toggleGlobalMode('p2p')">1-on-1 Manual</div>
+        <div class="sb-content flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-white">
+            <!-- Connection Mode Tabs -->
+            <div class="segmented-tabs flex bg-gray-200 rounded-lg p-1">
+                <div class="seg-tab active flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold text-text-muted transition-all duration-200" id="mode-tab-swarm" onclick="window.toggleGlobalMode('swarm')">Group Rooms</div>
+                <div class="seg-tab flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold text-text-muted transition-all duration-200" id="mode-tab-p2p" onclick="window.toggleGlobalMode('p2p')">1-on-1 Manual</div>
             </div>
 
             <!-- TAB 1: GROUP SWARM -->
-            <div class="card animate__animated animate__fadeIn" id="card-group-swarm">
-                <h3><i data-lucide="users" style="width:18px;"></i> Swarm Chat Rooms</h3>
+            <div class="card bg-bg-sidebar border border-border-default rounded-xl p-4 shadow-sm" id="card-group-swarm">
+                <h3 class="text-sm font-bold text-primary-dark mb-3 flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i> Swarm Chat Rooms</h3>
                 
-                <div class="segmented-tabs" style="background: #e2e6eb;">
-                    <div class="seg-tab active" id="swarm-flow-tab-create" onclick="toggleSwarmSubFlow('create')">Create Room</div>
-                    <div class="seg-tab" id="swarm-flow-tab-join" onclick="toggleSwarmSubFlow('join')">Join Room</div>
+                <div class="segmented-tabs flex bg-gray-300/60 rounded-lg p-1 mb-3">
+                    <div class="seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted" id="swarm-flow-tab-create" onclick="window.toggleSwarmSubFlow('create')">Create Room</div>
+                    <div class="seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted" id="swarm-flow-tab-join" onclick="window.toggleSwarmSubFlow('join')">Join Room</div>
                 </div>
 
                 <!-- Create Form -->
-                <div id="swarm-sub-create">
-                    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.3;">
-                        Invent a custom room name. Share it with anyone you want to join your decentralized room.
+                <div id="swarm-sub-create" class="space-y-3">
+                    <p class="text-[11px] text-text-muted leading-relaxed">
+                        Invent a custom room name. Share it with your peers to merge them into your real-time secure channel.
                     </p>
                     <div class="input-group">
-                        <label>Custom Room Name</label>
-                        <input type="text" id="swarm-create-input" placeholder="e.g. Gondal-Private">
+                        <label class="block text-[10px] font-bold text-text-muted uppercase mb-1 tracking-wider">Custom Room Name</label>
+                        <input type="text" id="swarm-create-input" class="w-full p-2 text-sm border border-border-default rounded-lg outline-none focus:border-primary focus:ring-2 focus:ring-primary/10" placeholder="e.g. Gondal-Private">
                     </div>
-                    <button class="btn" onclick="initiateSwarmChannel('create')">
-                        <i data-lucide="plus-circle" style="width:16px;"></i> Create & Open Room
+                    <button class="btn w-full py-2 bg-primary text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary-dark active:scale-[0.98] transition-all" onclick="window.initiateSwarmChannel('create')">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Create & Open Room
                     </button>
                 </div>
 
                 <!-- Join Form -->
-                <div id="swarm-sub-join" style="display:none;">
-                    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.3;">
-                        Enter the exact Room Name created by your peer to merge into their swarm.
+                <div id="swarm-sub-join" class="space-y-3 hidden">
+                    <p class="text-[11px] text-text-muted leading-relaxed">
+                        Enter the exact Room Name configured by your peer to seamlessly join their active group swarm.
                     </p>
                     <div class="input-group">
-                        <label>Existing Room Name</label>
-                        <input type="text" id="swarm-join-input" placeholder="e.g. Gondal-Private">
+                        <label class="block text-[10px] font-bold text-text-muted uppercase mb-1 tracking-wider">Existing Room Name</label>
+                        <input type="text" id="swarm-join-input" class="w-full p-2 text-sm border border-border-default rounded-lg outline-none focus:border-primary focus:ring-2 focus:ring-primary/10" placeholder="e.g. Gondal-Private">
                     </div>
-                    <button class="btn" onclick="initiateSwarmChannel('join')">
-                        <i data-lucide="log-in" style="width:16px;"></i> Join Swarm Group
+                    <button class="btn w-full py-2 bg-primary text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary-dark active:scale-[0.98] transition-all" onclick="window.initiateSwarmChannel('join')">
+                        <i data-lucide="log-in" class="w-4 h-4"></i> Join Swarm Group
                     </button>
                 </div>
             </div>
 
             <!-- TAB 2: MANUAL HANDSHAKE WIZARD (PURE WEBRTC) -->
-            <div class="card animate__animated animate__fadeIn" id="card-manual-p2p" style="display:none;">
-                <h3><i data-lucide="shield-alert" style="width:18px;"></i> Direct Handshake Link</h3>
+            <div class="card bg-bg-sidebar border border-border-default rounded-xl p-4 shadow-sm hidden" id="card-manual-p2p">
+                <h3 class="text-sm font-bold text-primary-dark mb-3 flex items-center gap-2"><i data-lucide="shield-alert" class="w-4 h-4"></i> Direct Handshake Link</h3>
                 
-                <div class="segmented-tabs" style="background: #e2e6eb;">
-                    <div class="seg-tab active" id="p2p-flow-tab-host" onclick="toggleP2PFlow('host')">Host Role</div>
-                    <div class="seg-tab" id="p2p-flow-tab-guest" onclick="toggleP2PFlow('guest')">Guest Role</div>
+                <div class="segmented-tabs flex bg-gray-300/60 rounded-lg p-1 mb-3">
+                    <div class="seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted" id="p2p-flow-tab-host" onclick="window.toggleP2PFlow('host')">Host Role</div>
+                    <div class="seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted" id="p2p-flow-tab-guest" onclick="window.toggleP2PFlow('guest')">Guest Role</div>
                 </div>
 
                 <!-- Host flow -->
-                <div id="flow-panel-host">
-                    <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.3;">
-                        1. Generate an Invite Token. Send it to your peer. Paste their Reply Token below to bridge.
+                <div id="flow-panel-host" class="space-y-3">
+                    <p class="text-[11px] text-text-muted leading-relaxed">
+                        1. Generate an Invite Token. Send it to your peer. Paste their generated Response Token below to bridge.
                     </p>
-                    <button class="btn outline" id="p2p-host-gen-btn" onclick="webrtcCreateOffer()">
-                        <i data-lucide="key" style="width:16px;"></i> Generate Invite Token
+                    <button class="btn outline w-full py-2 bg-transparent text-primary border border-primary rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary/5 active:scale-[0.98] transition-all" id="p2p-host-gen-btn" onclick="window.webrtcCreateOffer()">
+                        <i data-lucide="key" class="w-4 h-4"></i> Generate Invite Token
                     </button>
                     
-                    <div class="input-group" style="margin-top: 10px;">
-                        <textarea id="p2p-host-offer-field" readonly placeholder="Waiting to compile tokens..."></textarea>
-                        <button class="copy-badge-btn" onclick="copyValueToClipboard('p2p-host-offer-field')">
-                            <i data-lucide="copy" style="width:12px;"></i> Copy
+                    <div class="input-group relative">
+                        <textarea id="p2p-host-offer-field" readonly class="w-full h-16 p-2 pr-12 text-[10px] font-mono border border-border-default bg-white rounded-lg outline-none resize-none" placeholder="Invite Token will generate here..."></textarea>
+                        <button class="copy-badge-btn absolute right-2 top-2 bg-bg-sidebar hover:bg-gray-200 border border-border-default rounded px-2 py-0.5 text-[10px] font-semibold text-text-muted" onclick="window.copyValueToClipboard('p2p-host-offer-field')">
+                            <i data-lucide="copy" class="w-3 h-3 inline-block mr-1"></i> Copy
                         </button>
                     </div>
 
                     <div class="input-group">
-                        <label>2. Paste Reply Token From Guest</label>
-                        <textarea id="p2p-host-reply-field" placeholder="Paste the generated response string..."></textarea>
+                        <label class="block text-[10px] font-bold text-text-muted uppercase mb-1 tracking-wider">2. Paste Reply Token From Guest</label>
+                        <textarea id="p2p-host-reply-field" class="w-full h-16 p-2 text-[10px] font-mono border border-border-default bg-white rounded-lg outline-none resize-none" placeholder="Paste response token to establish line..."></textarea>
                     </div>
-                    <button class="btn" onclick="webrtcHostAcceptAnswer()">
-                        <i data-lucide="zap" style="width:16px;"></i> Finalize Connection
+                    <button class="btn w-full py-2 bg-primary text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary-dark active:scale-[0.98] transition-all" onclick="window.webrtcHostAcceptAnswer()">
+                        <i data-lucide="zap" class="w-4 h-4"></i> Finalize Connection
                     </button>
                 </div>
 
                 <!-- Guest flow -->
-                <div id="flow-panel-guest" style="display:none;">
-                    <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.3;">
-                        1. Paste the Host's Invite Token. Click generate, and send the response back to your Host.
+                <div id="flow-panel-guest" class="space-y-3 hidden">
+                    <p class="text-[11px] text-text-muted leading-relaxed">
+                        1. Paste the Host's Invite Token. Click generate, and send the generated response token back to the Host.
                     </p>
                     <div class="input-group">
-                        <label>Host's Invite Token</label>
-                        <textarea id="p2p-guest-offer-field" placeholder="Paste host token..."></textarea>
+                        <label class="block text-[10px] font-bold text-text-muted uppercase mb-1 tracking-wider">Host's Invite Token</label>
+                        <textarea id="p2p-guest-offer-field" class="w-full h-16 p-2 text-[10px] font-mono border border-border-default bg-white rounded-lg outline-none resize-none" placeholder="Paste host's invite token..."></textarea>
                     </div>
 
-                    <button class="btn outline" id="p2p-guest-gen-btn" onclick="webrtcCreateAnswer()">
-                        <i data-lucide="shield-check" style="width:16px;"></i> Generate Reply Token
+                    <button class="btn outline w-full py-2 bg-transparent text-primary border border-primary rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-primary/5 active:scale-[0.98] transition-all" id="p2p-guest-gen-btn" onclick="window.webrtcCreateAnswer()">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i> Generate Reply Token
                     </button>
 
-                    <div class="input-group" style="margin-top: 10px;">
-                        <textarea id="p2p-guest-reply-field" readonly placeholder="Your response token..."></textarea>
-                        <button class="copy-badge-btn" onclick="copyValueToClipboard('p2p-guest-reply-field')">
-                            <i data-lucide="copy" style="width:12px;"></i> Copy
+                    <div class="input-group relative">
+                        <textarea id="p2p-guest-reply-field" readonly class="w-full h-16 p-2 pr-12 text-[10px] font-mono border border-border-default bg-white rounded-lg outline-none resize-none" placeholder="Reply token will generate here..."></textarea>
+                        <button class="copy-badge-btn absolute right-2 top-2 bg-bg-sidebar hover:bg-gray-200 border border-border-default rounded px-2 py-0.5 text-[10px] font-semibold text-text-muted" onclick="window.copyValueToClipboard('p2p-guest-reply-field')">
+                            <i data-lucide="copy" class="w-3 h-3 inline-block mr-1"></i> Copy
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </aside>
 
     <!-- RIGHT CHAT VIEWPORT -->
-    <div id="chat-area">
-        <!-- Landing Fallback Setup page overlay -->
-        <div id="connection-fallback">
-            <i data-lucide="messages-square" style="width: 80px; height: 80px; color: var(--primary); opacity: 0.75;"></i>
-            <h2>Secure Decentralized Chat</h2>
-            <p>Type any room name under the <b>Group Rooms</b> tab, or exchange manual handshake keys to establish an encrypted route.</p>
-            <div style="margin-top: 24px; font-size: 0.75rem; color: var(--text-muted); display:flex; gap:6px; align-items:center;">
-                <i data-lucide="lock" style="width:14px;"></i> Direct browser-to-browser P2P routing with cloud sync fallback.
+    <main id="chat-area" class="flex-1 flex flex-col bg-bg-chat relative h-full">
+        <!-- Connection Fallback Landing Screen -->
+        <div id="connection-fallback" class="absolute inset-0 bg-bg-sidebar z-50 flex flex-col items-center justify-center text-text-muted text-center p-8">
+            <i data-lucide="messages-square" class="w-20 h-20 text-primary opacity-80 mb-4"></i>
+            <h2 class="text-xl font-medium text-text-main mb-2">Secure Decentralized Chat</h2>
+            <p class="max-w-[360px] text-sm leading-relaxed mb-6">
+                Configure a custom room under the <b>Group Rooms</b> tab, or exchange direct keys in 1-on-1 Manual mode to start encrypted communication.
+            </p>
+            <div class="flex items-center gap-2 text-xs text-text-muted">
+                <i data-lucide="lock" class="w-4 h-4 text-primary"></i> Direct browser-to-browser P2P routing. Real-time Firebase Sync active on failure.
             </div>
         </div>
 
-        <!-- Connected Chat UI Header -->
-        <div id="chat-header">
-            <div class="active-user-meta">
-                <div class="avatar-container" style="background: var(--primary-dark);"><i data-lucide="globe" style="width:18px;"></i></div>
+        <!-- Chat Header -->
+        <header id="chat-header" class="bg-bg-sidebar py-3 px-5 flex items-center justify-between border-b border-border-default z-10">
+            <div class="active-user-meta flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary-dark text-white flex items-center justify-center shadow-md">
+                    <i data-lucide="globe" class="w-5 h-5"></i>
+                </div>
                 <div>
-                    <h4 id="header-active-name">Global Room</h4>
-                    <span><i data-lucide="users" style="width:12px;"></i> <span id="header-active-status">Active Mesh</span></span>
+                    <h4 id="header-active-name" class="text-sm font-semibold text-text-main">Global Room</h4>
+                    <span class="text-xs text-text-muted flex items-center gap-1">
+                        <i data-lucide="users" class="w-3 h-3 text-primary"></i> 
+                        <span id="header-active-status">Active Sync Mesh</span>
+                    </span>
                 </div>
             </div>
-            <div class="header-actions">
-                <span id="header-active-indicator" class="status-pill">Active</span>
-                <button class="disconnect-btn" onclick="destroyConnectionState()">Disconnect</button>
+            <div class="header-actions flex items-center gap-3">
+                <span id="header-active-indicator" class="status-pill text-xs font-bold text-green-700 bg-green-100 py-1 px-3 rounded-full">Secure</span>
+                <button class="disconnect-btn bg-transparent border border-red-200 text-danger hover:bg-red-50 hover:border-danger text-xs font-semibold py-1.5 px-3 rounded-md transition-all duration-200" onclick="window.destroyConnectionState()">Disconnect</button>
+            </div>
+        </header>
+
+        <!-- Messages Timeline Viewport -->
+        <div id="messages-viewport" class="flex-1 overflow-y-auto p-6 flex flex-col gap-3"></div>
+
+        <!-- Reply Reference Banner Overlay -->
+        <div id="active-reply-banner" class="hidden bg-bg-sidebar px-6 py-2 border-t border-border-default flex items-center justify-between z-10 transition-all">
+            <div class="reply-meta-wrap border-l-4 border-primary pl-3 bg-black/5 rounded-r py-1 flex-1">
+                <div class="reply-meta-title text-xs font-bold text-primary-dark mb-0.5" id="reply-to-user">Replying to</div>
+                <div class="reply-meta-text text-sm text-text-muted truncate max-w-[600px]" id="reply-to-body">Message reference...</div>
+            </div>
+            <div class="dock-action-btn p-2 hover:bg-gray-200 rounded-full cursor-pointer text-text-muted" onclick="window.deactivateReplySystem()">
+                <i data-lucide="x" class="w-4 h-4"></i>
             </div>
         </div>
 
-        <!-- Chat messages timeline container -->
-        <div id="messages-viewport"></div>
+        <!-- Emoji Selector Popover -->
+        <div id="emoji-popover" class="hidden absolute bottom-[72px] left-4 bg-white rounded-xl shadow-2xl p-3 w-[280px] grid grid-cols-6 gap-2 border border-border-default z-50"></div>
 
-        <!-- Reply Reference Container -->
-        <div id="active-reply-banner">
-            <div class="reply-meta-wrap">
-                <div class="reply-meta-title" id="reply-to-user">Replying to</div>
-                <div class="reply-meta-text" id="reply-to-body">Message reference...</div>
+        <!-- Bottom Chat Input Dock -->
+        <div id="message-dock" class="bg-bg-sidebar p-3 flex items-end gap-3 border-t border-border-default z-10">
+            <div class="dock-action-btn p-2 text-text-muted hover:text-text-main hover:bg-gray-200 rounded-full cursor-pointer transition" onclick="window.toggleEmojiBox()">
+                <i data-lucide="smile" class="w-5 h-5"></i>
             </div>
-            <div class="dock-action-btn" onclick="deactivateReplySystem()"><i data-lucide="x" style="width:16px;"></i></div>
-        </div>
-
-        <!-- Input Emoji Popover Grid -->
-        <div id="emoji-popover"></div>
-
-        <!-- Sticky Dock input footer bar -->
-        <div id="message-dock">
-            <div class="dock-action-btn" onclick="toggleEmojiBox()"><i data-lucide="smile"></i></div>
-            <div class="dock-action-btn" onclick="triggerFileSelector()"><i data-lucide="paperclip"></i></div>
-            <input type="file" id="media-attachment-input" style="display: none;" accept="image/*,video/*" onchange="processLocalAttachment(this)">
+            <div class="dock-action-btn p-2 text-text-muted hover:text-text-main hover:bg-gray-200 rounded-full cursor-pointer transition" onclick="window.triggerFileSelector()">
+                <i data-lucide="paperclip" class="w-5 h-5"></i>
+            </div>
+            <input type="file" id="media-attachment-input" class="hidden" accept="image/*,video/*" onchange="window.processLocalAttachment(this)">
             
-            <div class="dock-text-input-wrapper">
-                <input type="text" id="chat-message-input" placeholder="Type a message..." oninput="evaluateInputContext()" onkeypress="handleEnterSubmit(event)">
+            <div class="dock-text-input-wrapper flex-1 bg-white rounded-full py-1.5 px-4 shadow-sm border border-border-default/50 flex items-center">
+                <input type="text" id="chat-message-input" class="w-full border-none outline-none text-sm text-text-main bg-transparent py-1" placeholder="Type a message..." oninput="window.evaluateInputContext()" onkeypress="window.handleEnterSubmit(event)">
             </div>
 
-            <!-- Contextual Send icon transitioning between voice memo & send -->
-            <div class="dock-action-btn" id="dock-action-mic" onclick="toggleAudioRecorder()"><i data-lucide="mic"></i></div>
-            <div class="dock-action-btn" id="dock-action-send" style="display: none; background: var(--primary); color: white;" onclick="transmitStandardMessage()"><i data-lucide="send" style="width: 18px;"></i></div>
+            <div class="dock-action-btn p-2.5 text-text-muted hover:text-text-main hover:bg-gray-200 rounded-full cursor-pointer transition" id="dock-action-mic" onclick="window.toggleAudioRecorder()">
+                <i data-lucide="mic" class="w-5 h-5"></i>
+            </div>
+            <div class="dock-action-btn p-2.5 bg-primary text-white rounded-full cursor-pointer hover:bg-primary-dark transition shadow-md hidden" id="dock-action-send" onclick="window.transmitStandardMessage()">
+                <i data-lucide="send" class="w-5 h-5"></i>
+            </div>
         </div>
-    </div>
+    </main>
 </div>
 
-<!-- Firebase Modular Scripts (compliant with rules) -->
+<!-- Firebase & Application Script Logic Block -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // Global variables exposed by the Canvas preview system
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'omnichat-canvas-fallback';
+    // Application ID Configuration
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'dayaro-mesh-coordination';
     let db = null;
     let auth = null;
     let firebaseReady = false;
     let firestoreUnsubscribe = null;
     let currentRoomId = null;
 
-    // Initialize Firebase
-    if (typeof __firebase_config !== 'undefined') {
+    // Secure fallback authentication validation (Firestore Rules Rule 3)
+    if (typeof __firebase_config !== 'undefined' && __firebase_config) {
         try {
             const firebaseConfig = JSON.parse(__firebase_config);
             const app = initializeApp(firebaseConfig);
@@ -855,35 +287,31 @@
             db = getFirestore(app);
             firebaseReady = true;
 
-            // Auth Priority (Firestore Rules Rule 3)
             const initAuth = async () => {
                 try {
                     await signInAnonymously(auth);
-                    console.log("Firebase Auth established anonymously.");
+                    console.log("Secure Mesh Synchronization established (Firestore Engine enabled).");
                 } catch (err) {
-                    console.warn("Firebase Auth Error:", err);
+                    console.error("Firestore coordination connection error:", err);
                 }
             };
             initAuth();
         } catch (e) {
-            console.warn("Firebase initialization skipped or failed:", e);
+            console.warn("Could not initiate Cloud Synchronization Engine. Running in P2P loop mode.", e);
         }
     }
 
-    // Initialize premium standard icons
-    lucide.createIcons();
-
     // App state flags
-    let currentGlobalMode = 'swarm'; // 'swarm' | 'p2p'
-    let currentSwarmSubFlow = 'create'; // 'create' | 'join'
-    let currentP2PFlow = 'host'; // 'host' | 'guest'
+    let currentGlobalMode = 'swarm'; 
+    let currentSwarmSubFlow = 'create'; 
+    let currentP2PFlow = 'host';
     let activeUsername = localStorage.getItem('omnichat_username') || 'Peer_' + Math.floor(1000 + Math.random() * 9000);
 
     // Messaging pipeline pointers
     let activeBugoutInstance = null;
     let localRTCPeerConnection = null;
     let localRTCDataChannel = null;
-    let activeP2PMessageProtocol = null; // Stores Bugout, RTCDataChannel or "CLOUDSYNC"
+    let activeP2PMessageProtocol = null; 
     let useCloudSyncFallback = false;
 
     let activeReplyContextValue = null;
@@ -891,7 +319,6 @@
     let audioBlobChunks = [];
     let isCurrentlyRecordingAudio = false;
 
-    // Standard STUN servers for ICE
     const webrtcIceConfiguration = {
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
@@ -900,11 +327,11 @@
         ]
     };
 
-    // Populate profile inputs
+    // Initialize username & dynamic colorized avatar profile
     document.getElementById('username-field').value = activeUsername;
     generateDynamicProfileAvatar(activeUsername);
 
-    // Setup Emoji Collection
+    // Load custom emoji tray
     const customGridEmojis = ['😀','😂','🥺','😍','🙏','👍','🔥','🎉','❤️','💔','🤔','😎','👀','🙌','✨','💯','✅','❌','💪','😜','🙄','😢','👏','🚀'];
     const emojiContainer = document.getElementById('emoji-popover');
     customGridEmojis.forEach(symbol => {
@@ -920,7 +347,7 @@
         emojiContainer.appendChild(cell);
     });
 
-    // Dynamic colorized fallback avatar creator
+    // Helper: Dynamic colorized fallback avatar creator
     function generateDynamicProfileAvatar(nameString) {
         const char = nameString.trim().charAt(0).toUpperCase();
         const avBox = document.getElementById('profile-avatar');
@@ -939,30 +366,26 @@
         generateDynamicProfileAvatar(activeUsername);
     }
 
-    // Toggle View State Controllers
     function toggleGlobalMode(modeStr) {
         currentGlobalMode = modeStr;
-        document.getElementById('mode-tab-swarm').className = modeStr === 'swarm' ? 'seg-tab active' : 'seg-tab';
-        document.getElementById('mode-tab-p2p').className = modeStr === 'p2p' ? 'seg-tab active' : 'seg-tab';
-
+        document.getElementById('mode-tab-swarm').className = modeStr === 'swarm' ? 'seg-tab active flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold' : 'seg-tab flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
+        document.getElementById('mode-tab-p2p').className = modeStr === 'p2p' ? 'seg-tab active flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold' : 'seg-tab flex-1 text-center py-2 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
         document.getElementById('card-group-swarm').style.display = modeStr === 'swarm' ? 'block' : 'none';
         document.getElementById('card-manual-p2p').style.display = modeStr === 'p2p' ? 'block' : 'none';
     }
 
     function toggleSwarmSubFlow(flowStr) {
         currentSwarmSubFlow = flowStr;
-        document.getElementById('swarm-flow-tab-create').className = flowStr === 'create' ? 'seg-tab active' : 'seg-tab';
-        document.getElementById('swarm-flow-tab-join').className = flowStr === 'join' ? 'seg-tab active' : 'seg-tab';
-
+        document.getElementById('swarm-flow-tab-create').className = flowStr === 'create' ? 'seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-primary-dark' : 'seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
+        document.getElementById('swarm-flow-tab-join').className = flowStr === 'join' ? 'seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-primary-dark' : 'seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
         document.getElementById('swarm-sub-create').style.display = flowStr === 'create' ? 'block' : 'none';
         document.getElementById('swarm-sub-join').style.display = flowStr === 'join' ? 'block' : 'none';
     }
 
     function toggleP2PFlow(flowStr) {
         currentP2PFlow = flowStr;
-        document.getElementById('p2p-flow-tab-host').className = flowStr === 'host' ? 'seg-tab active' : 'seg-tab';
-        document.getElementById('p2p-flow-tab-guest').className = flowStr === 'guest' ? 'seg-tab active' : 'seg-tab';
-
+        document.getElementById('p2p-flow-tab-host').className = flowStr === 'host' ? 'seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-primary-dark' : 'seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
+        document.getElementById('p2p-flow-tab-guest').className = flowStr === 'guest' ? 'seg-tab active flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-primary-dark' : 'seg-tab flex-1 text-center py-1.5 rounded-md cursor-pointer text-xs font-semibold text-text-muted';
         document.getElementById('flow-panel-host').style.display = flowStr === 'host' ? 'block' : 'none';
         document.getElementById('flow-panel-guest').style.display = flowStr === 'guest' ? 'block' : 'none';
     }
@@ -984,7 +407,6 @@
         const value = document.getElementById('chat-message-input').value.trim();
         const sendBtn = document.getElementById('dock-action-send');
         const micBtn = document.getElementById('dock-action-mic');
-
         if (value.length > 0) {
             sendBtn.style.display = 'flex';
             micBtn.style.display = 'none';
@@ -1001,7 +423,7 @@
         }
     }
 
-    // --- SWARM ENGINE (BUGOUT WITH IMMERSIVE FIREBASE FALLBACK) ---
+    // --- SWARM / CLOUD CORE ROUTING (ORB-Proof self-healing) ---
     function initiateSwarmChannel(flow) {
         let roomName = "";
         if (flow === 'create') {
@@ -1009,16 +431,14 @@
         } else {
             roomName = document.getElementById('swarm-join-input').value.trim();
         }
-
         if (!roomName) {
             alertCustom("Please fill in a valid Room Name!");
             return;
         }
-
         destroyConnectionState(true);
         currentRoomId = roomName.toLowerCase().replace(/\s+/g, '-');
 
-        // Check if WebTorrents/Bugout is functional. In Canvas, trackers are blocked.
+        // Check if browser blocked external Bugout or if Bugout library failed to load (ORB guard)
         if (typeof Bugout === "undefined") {
             triggerCloudSyncSwarm(roomName);
             return;
@@ -1031,17 +451,15 @@
             useCloudSyncFallback = false;
 
             activeBugoutInstance.on("ready", () => {
-                pushSystemAlertBubble(`Successfully registered to DHT Swarm Tracker.`);
+                pushSystemAlertBubble(`Registered with Bugout Swarm Tracker. searching mesh...`);
                 activateChatInterface(`Room: ${roomName}`, "Waiting for peers to join...");
-                
-                // Track if peer discovery is blocked
                 setTimeout(() => {
                     const peerCount = Object.keys(activeBugoutInstance.peers).length;
                     if (peerCount === 0) {
-                        pushSystemAlertBubble("Note: P2P trackers blocked or idle. Upgrading room automatically to cloud-sync coordination...");
+                        pushSystemAlertBubble("No response from P2P trackers. Seamlessly switching to real-time Cloud Sync Sync...");
                         triggerCloudSyncSwarm(roomName);
                     }
-                }, 1500);
+                }, 1800);
             });
 
             activeBugoutInstance.on("message", (address, payload) => {
@@ -1052,47 +470,44 @@
 
             activeBugoutInstance.on("seen", () => updateSwarmNodeHeaderCount());
             activeBugoutInstance.on("timeout", () => updateSwarmNodeHeaderCount());
-
         } catch (err) {
-            console.warn("Tracker exception. Seamlessly transitioning to real-time cloud-sync channel...", err);
             triggerCloudSyncSwarm(roomName);
         }
     }
 
-    // Dynamic Cloud-Sync mesh fallback for restricted sandbox canvas previews (COMPLIANT WITH RULE 1, 2, 3)
+    // Real-Time Sync fallback via secure anonymous auth (Rule 1 & Rule 2 compliant)
     async function triggerCloudSyncSwarm(roomName) {
         useCloudSyncFallback = true;
         activeP2PMessageProtocol = "CLOUDSYNC";
-
+        
         if (!firebaseReady || !db) {
-            activateChatInterface(`Room: ${roomName} (Offline Mode)`, "Local loop active");
-            pushSystemAlertBubble("No Firebase config detected. Group chat running in offline loop.");
+            activateChatInterface(`Room: ${roomName} (Offline Loop)`, "Local connection loop established");
+            pushSystemAlertBubble("Firebase credentials missing. App initialized in standard offline loop.");
             return;
         }
 
-        // Wait for Anonymous Auth completion (Rule 3)
+        // Rule 3 Verification: Authenticate FIRST, guard operations afterward
         if (!auth.currentUser) {
-            pushSystemAlertBubble("Authenticating room pipeline securely...");
+            pushSystemAlertBubble("Connecting securely to Sync Pipeline...");
             try {
                 await signInAnonymously(auth);
             } catch (err) {
-                pushSystemAlertBubble("Secure authorization failed. Reverting to local fallback.");
+                pushSystemAlertBubble("Secure authorization failed. Switched to offline loop.");
                 return;
             }
         }
 
-        activateChatInterface(`Room: ${roomName}`, "Secure Cloud-Mesh Connected");
-        pushSystemAlertBubble("Connected to cloud synchronization layer. Messages will sync in real-time across tabs/devices!");
+        activateChatInterface(`Room: ${roomName}`, "Secure Synchronized Mesh Online");
+        pushSystemAlertBubble("Mesh online. Instant multi-window cross-device updates unlocked!");
 
-        // Set up real-time listener (Rule 1 & Rule 2 compliant)
-        // STRICT PATH: /artifacts/{appId}/public/data/messages
+        // Rule 1 Compliant strict collection path mapping
         const publicCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
-        
-        // RULE 2: No complex queries. Fetch all data with simple collection() and filter/sort in memory.
+
+        // Clean any active instances to avoid leaky memory loops
         if (firestoreUnsubscribe) firestoreUnsubscribe();
-        
+
+        // Rule 2 compliant query: simple collection read, then memory filter & sorting
         firestoreUnsubscribe = onSnapshot(publicCollectionRef, (snapshot) => {
-            // Read and filter documents in JavaScript memory (strictly compliant with Rule 2)
             const syncedMessages = [];
             snapshot.forEach(doc => {
                 const data = doc.data();
@@ -1101,19 +516,18 @@
                 }
             });
 
-            // Sort by numerical timestamp in JavaScript memory
+            // Perform chronological sorting strictly inside browser state memory
             syncedMessages.sort((a, b) => a.createdTime - b.createdTime);
 
-            // Re-render chat area safely with updated message frames
             const viewport = document.getElementById('messages-viewport');
-            viewport.innerHTML = ""; // Purge old frames safely
+            viewport.innerHTML = ""; // Clean frame viewport
 
             syncedMessages.forEach(msg => {
                 const direction = msg.sender === activeUsername ? 'outbound' : 'inbound';
                 renderMessageBubble(msg, direction);
             });
         }, (error) => {
-            console.error("Firestore synchronizer issue:", error);
+            console.error("Cloud synchronization listener error:", error);
         });
     }
 
@@ -1124,25 +538,18 @@
         }
     }
 
-    // --- P2P MANUAL HANDSHAKE WIZARD (WEBRTC) ---
+    // --- MANUAL HANDSHAKE WIZARD (STABLE WEBRTC STATE RESOLVER) ---
     function prepareManualWebRTCChannel() {
         localRTCPeerConnection = new RTCPeerConnection(webrtcIceConfiguration);
-
         localRTCPeerConnection.oniceconnectionstatechange = () => {
             const state = localRTCPeerConnection.iceConnectionState;
-            pushSystemAlertBubble(`ICE Connection state update: ${state}`);
-            
+            pushSystemAlertBubble(`ICE Connection status update: ${state}`);
             if (state === 'connected') {
                 activateChatInterface("Direct 1-on-1 Connected", "Secure P2P Tunnel Active");
-                document.getElementById('header-active-indicator').className = "status-pill";
-                document.getElementById('header-active-indicator').innerText = "Encrypted";
-            } else if (state === 'disconnected' || state === 'failed') {
-                pushSystemAlertBubble("Direct P2P socket pipeline disrupted. Attempting re-routing...");
-                document.getElementById('header-active-indicator').className = "status-pill offline";
-                document.getElementById('header-active-indicator').innerText = "Offline";
+                document.getElementById('header-active-indicator').className = "status-pill text-xs font-bold text-green-700 bg-green-100 py-1 px-3 rounded-full";
+                document.getElementById('header-active-indicator').innerText = "Direct P2P Encrypted";
             }
         };
-
         localRTCPeerConnection.ondatachannel = (event) => {
             localRTCDataChannel = event.channel;
             bindManualRTCDataEvents();
@@ -1151,155 +558,119 @@
 
     function bindManualRTCDataEvents() {
         if (!localRTCDataChannel) return;
-
         localRTCDataChannel.onopen = () => {
-            pushSystemAlertBubble("Manual RTCDataChannel link verified. Secure data routing unlocked.");
+            pushSystemAlertBubble("Manual P2P RTCDataChannel tunnel bridged successfully.");
             activeP2PMessageProtocol = localRTCDataChannel;
             useCloudSyncFallback = false;
             activateChatInterface("Direct 1-on-1 Connected", "Secure Tunnel Active");
         };
-
-        localRTCDataChannel.onclose = () => {
-            pushSystemAlertBubble("Manual RTCDataChannel link closed down.");
-            activeP2PMessageProtocol = null;
-        };
-
+        localRTCDataChannel.onclose = () => { activeP2PMessageProtocol = null; };
         localRTCDataChannel.onmessage = (event) => {
             try {
                 const payload = JSON.parse(event.data);
                 renderMessageBubble(payload, 'inbound');
-            } catch (err) {
-                console.error("Malformed package parsed from direct peer link.", err);
-            }
+            } catch (err) {}
         };
     }
 
     async function webrtcCreateOffer() {
         const btn = document.getElementById('p2p-host-gen-btn');
-        btn.innerHTML = `<i class="lucide-loader spinner-active" data-lucide="loader"></i> Assembling Local Paths...`;
         btn.disabled = true;
-        lucide.createIcons();
+
+        // Force close existing objects to guarantee clean handshake state machine transitions
+        if (localRTCPeerConnection) {
+            try { localRTCPeerConnection.close(); } catch(e){}
+        }
 
         prepareManualWebRTCChannel();
-
         localRTCDataChannel = localRTCPeerConnection.createDataChannel("manual-payload-channel");
         bindManualRTCDataEvents();
 
         localRTCPeerConnection.onicecandidate = (event) => {
             if (event.candidate === null) {
-                const invitePackage = {
-                    sdp: localRTCPeerConnection.localDescription,
-                };
+                const invitePackage = { sdp: localRTCPeerConnection.localDescription };
                 document.getElementById('p2p-host-offer-field').value = btoa(JSON.stringify(invitePackage));
-                btn.innerHTML = `<i data-lucide="check" style="width:16px;"></i> Invite Token Ready`;
                 btn.disabled = false;
-                lucide.createIcons();
             }
         };
 
         try {
             const offerSDP = await localRTCPeerConnection.createOffer();
             await localRTCPeerConnection.setLocalDescription(offerSDP);
-        } catch (err) {
-            alertCustom("Failed to formulate local SDP Offer. Try restarting browser components.");
-            btn.innerHTML = `<i data-lucide="key" style="width:16px;"></i> Generate Invite Token`;
+        } catch(e) {
+            console.error("Host WebRTC initialization failed: ", e);
             btn.disabled = false;
-            lucide.createIcons();
         }
     }
 
     async function webrtcCreateAnswer() {
         const hostTokenRaw = document.getElementById('p2p-guest-offer-field').value.trim();
         if (!hostTokenRaw) {
-            alertCustom("Please paste the Host's Invite Token first!");
+            alertCustom("Please paste Host's Invite Token first!");
             return;
         }
 
-        const sanitizedHostToken = hostTokenRaw.replace(/[^A-Za-z0-9+/=]/g, "");
-
-        const btn = document.getElementById('p2p-guest-gen-btn');
-        btn.innerHTML = `<i class="lucide-loader spinner-active" data-lucide="loader"></i> Formulating Answer...`;
-        btn.disabled = true;
-        lucide.createIcons();
+        if (localRTCPeerConnection) {
+            try { localRTCPeerConnection.close(); } catch(e){}
+        }
 
         prepareManualWebRTCChannel();
 
         localRTCPeerConnection.onicecandidate = (event) => {
             if (event.candidate === null) {
-                const guestPackage = {
-                    sdp: localRTCPeerConnection.localDescription
-                };
+                const guestPackage = { sdp: localRTCPeerConnection.localDescription };
                 document.getElementById('p2p-guest-reply-field').value = btoa(JSON.stringify(guestPackage));
-                btn.innerHTML = `<i data-lucide="check" style="width:16px;"></i> Answer Reply Ready`;
-                btn.disabled = false;
-                lucide.createIcons();
             }
         };
 
         try {
-            const decodedHostPackage = JSON.parse(atob(sanitizedHostToken));
-            await localRTCPeerConnection.setRemoteDescription(decodedHostPackage.sdp);
-            
+            const decodedHostPackage = JSON.parse(atob(hostTokenRaw.replace(/[^A-Za-z0-9+/=]/g, "")));
+            await localRTCPeerConnection.setRemoteDescription(new RTCSessionDescription(decodedHostPackage.sdp));
             const answerSDP = await localRTCPeerConnection.createAnswer();
             await localRTCPeerConnection.setLocalDescription(answerSDP);
         } catch (err) {
-            console.error("WebRTC Guest Error:", err);
-            alertCustom("Error Parsing Invite Token: " + err.message);
-            btn.innerHTML = `<i data-lucide="shield-check" style="width:16px;"></i> Generate Reply Token`;
-            btn.disabled = false;
-            lucide.createIcons();
+            console.error("Guest WebRTC initialization failed: ", err);
+            alertCustom("Handshake Failed: " + err.message);
         }
     }
 
     async function webrtcHostAcceptAnswer() {
         const replyTokenRaw = document.getElementById('p2p-host-reply-field').value.trim();
         if (!replyTokenRaw) {
-            alertCustom("Please paste your guest peer's Response Token first!");
+            alertCustom("Please paste Guest's Reply Token first!");
             return;
         }
 
         if (!localRTCPeerConnection) {
-            alertCustom("Host session has expired! Click 'Generate Invite Token' first before applying replies.");
+            alertCustom("Handshake session invalid. Please click 'Generate Invite Token' first.");
             return;
         }
 
-        const sanitizedReplyToken = replyTokenRaw.replace(/[^A-Za-z0-9+/=]/g, "");
-
         try {
-            const decodedGuestPackage = JSON.parse(atob(sanitizedReplyToken));
-            await localRTCPeerConnection.setRemoteDescription(decodedGuestPackage.sdp);
-            pushSystemAlertBubble("Accepting guest remote pathing... Negotiating WebRTC data stream.");
+            const decodedGuestPackage = JSON.parse(atob(replyTokenRaw.replace(/[^A-Za-z0-9+/=]/g, "")));
+            
+            // Check signalling state to secure stable handshake
+            if (localRTCPeerConnection.signalingState === "stable") {
+                alertCustom("Handshake stable already. Connection is currently online.");
+                return;
+            }
+
+            await localRTCPeerConnection.setRemoteDescription(new RTCSessionDescription(decodedGuestPackage.sdp));
+            pushSystemAlertBubble("Signalling complete. Establishing peer tunnel...");
         } catch (err) {
-            console.error("WebRTC Host Accept Error:", err);
-            alertCustom("Signaling Error: " + err.message);
+            console.error("WebRTC Handshake Signalling Error:", err);
+            alertCustom("Signalling Exception: " + err.message);
         }
     }
 
     function destroyConnectionState(silent = false) {
-        if (activeBugoutInstance) {
-            try { activeBugoutInstance.destroy(); } catch(e){}
-            activeBugoutInstance = null;
-        }
-
-        if (localRTCDataChannel) {
-            try { localRTCDataChannel.close(); } catch(e){}
-            localRTCDataChannel = null;
-        }
-
-        if (localRTCPeerConnection) {
-            try { localRTCPeerConnection.close(); } catch(e){}
-            localRTCPeerConnection = null;
-        }
-
-        if (firestoreUnsubscribe) {
-            firestoreUnsubscribe();
-            firestoreUnsubscribe = null;
-        }
-
+        if (activeBugoutInstance) { try { activeBugoutInstance.destroy(); } catch(e){} }
+        if (localRTCDataChannel) { try { localRTCDataChannel.close(); } catch(e){} }
+        if (localRTCPeerConnection) { try { localRTCPeerConnection.close(); } catch(e){} }
+        if (firestoreUnsubscribe) firestoreUnsubscribe();
         activeP2PMessageProtocol = null;
         useCloudSyncFallback = false;
         currentRoomId = null;
-
         if (!silent) {
             document.getElementById('connection-fallback').style.display = 'flex';
             document.getElementById('messages-viewport').innerHTML = "";
@@ -1310,16 +681,11 @@
         }
     }
 
-    // Dispatch Standard messages across the active pipeline
+    // --- STANDARD TRANSFERS AND DOCK PIPELINE ---
     async function transmitStandardMessage() {
         const inputField = document.getElementById('chat-message-input');
         const textValue = inputField.value.trim();
         if (!textValue) return;
-
-        if (!activeP2PMessageProtocol) {
-            alertCustom("No active connection. Create/Join a Swarm, or establish WebRTC Direct.");
-            return;
-        }
 
         const payloadPacket = {
             id: generateUniqueMessageId(),
@@ -1332,21 +698,18 @@
             createdTime: Date.now()
         };
 
-        if (useCloudSyncFallback) {
-            // Firestore Synchronization Write Pipeline (Rule 1 & Rule 3 Guarded)
-            if (firebaseReady && db && auth.currentUser) {
-                try {
-                    const publicCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
-                    await addDoc(publicCollectionRef, payloadPacket);
-                } catch (e) {
-                    console.error("Cloud write synchronization failure:", e);
-                    renderMessageBubble(payloadPacket, 'outbound'); // local echo if write error
-                }
-            } else {
-                renderMessageBubble(payloadPacket, 'outbound'); // Offline loop fallback
+        if (useCloudSyncFallback && firebaseReady && db && auth.currentUser) {
+            try {
+                const publicCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+                await addDoc(publicCollectionRef, payloadPacket);
+            } catch (e) {
+                console.error("Sync write failed:", e);
+                renderMessageBubble(payloadPacket, 'outbound'); 
             }
         } else {
-            sendPayloadAcrossChannel(payloadPacket);
+            if (activeP2PMessageProtocol && activeP2PMessageProtocol !== "CLOUDSYNC") {
+                sendPayloadAcrossChannel(payloadPacket);
+            }
             renderMessageBubble(payloadPacket, 'outbound');
         }
 
@@ -1356,31 +719,31 @@
         toggleEmojiBox(false);
     }
 
-    // Process file attachments (Image/Video)
-    function processLocalAttachment(inputEl) {
+    // Process file attachments (Base64)
+    async function processLocalAttachment(inputEl) {
         const file = inputEl.files[0];
         if (!file) return;
 
         if (!activeP2PMessageProtocol) {
-            alertCustom("Please connect to a secure channel before transmitting file packets.");
+            alertCustom("Join an active mesh before sending attachments.");
             return;
         }
 
         const fileTypeGroup = file.type.split('/')[0]; 
         if (fileTypeGroup !== 'image' && fileTypeGroup !== 'video') {
-            alertCustom("Only image and video file transfers are directly supported in browser mesh panels.");
+            alertCustom("Only image and video attachments are natively supported.");
             return;
         }
 
         const reader = new FileReader();
-        pushSystemAlertBubble(`Encoding dynamic file packet [${file.name}]...`);
+        pushSystemAlertBubble(`Processing attachment: ${file.name}...`);
         
         reader.onload = async (event) => {
             const payloadPacket = {
                 id: generateUniqueMessageId(),
                 type: fileTypeGroup === 'image' ? 'IMAGE' : 'VIDEO',
                 sender: activeUsername,
-                body: event.target.result, // base64 payload
+                body: event.target.result, 
                 fileName: file.name,
                 timestamp: getShortTime(),
                 replyTo: activeReplyContextValue,
@@ -1388,16 +751,12 @@
                 createdTime: Date.now()
             };
 
-            if (useCloudSyncFallback) {
-                if (firebaseReady && db && auth.currentUser) {
-                    try {
-                        const publicCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
-                        await addDoc(publicCollectionRef, payloadPacket);
-                    } catch (e) {
-                        console.error("Cloud file upload failed:", e);
-                        renderMessageBubble(payloadPacket, 'outbound');
-                    }
-                } else {
+            if (useCloudSyncFallback && firebaseReady && db && auth.currentUser) {
+                try {
+                    const publicCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+                    await addDoc(publicCollectionRef, payloadPacket);
+                } catch (e) {
+                    console.error("Cloud synchronization image write error:", e);
                     renderMessageBubble(payloadPacket, 'outbound');
                 }
             } else {
@@ -1412,7 +771,7 @@
         reader.readAsDataURL(file);
     }
 
-    // Process Voice note recordings
+    // Process Voice Notes
     async function toggleAudioRecorder() {
         if (!activeP2PMessageProtocol) {
             alertCustom("Join an active peer connection before starting voice record.");
@@ -1445,23 +804,19 @@
                         id: generateUniqueMessageId(),
                         type: 'AUDIO',
                         sender: activeUsername,
-                        body: event.target.result, // base64 audio payload
+                        body: event.target.result, 
                         timestamp: getShortTime(),
                         replyTo: activeReplyContextValue,
                         room: currentRoomId,
                         createdTime: Date.now()
                     };
 
-                    if (useCloudSyncFallback) {
-                        if (firebaseReady && db && auth.currentUser) {
-                            try {
-                                const publicCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
-                                await addDoc(publicCollectionRef, payloadPacket);
-                            } catch (e) {
-                                console.error("Cloud audio upload failed:", e);
-                                renderMessageBubble(payloadPacket, 'outbound');
-                            }
-                        } else {
+                    if (useCloudSyncFallback && firebaseReady && db && auth.currentUser) {
+                        try {
+                            const publicCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+                            await addDoc(publicCollectionRef, payloadPacket);
+                        } catch (e) {
+                            console.error("Cloud audio upload failed:", e);
                             renderMessageBubble(payloadPacket, 'outbound');
                         }
                     } else {
@@ -1472,15 +827,14 @@
                     deactivateReplySystem();
                 };
                 reader.readAsDataURL(audioBlob);
-
                 stream.getTracks().forEach(track => track.stop());
             };
 
             audioMediaRecorder.start();
             isCurrentlyRecordingAudio = true;
-            document.getElementById('dock-action-mic').innerHTML = `<i data-lucide="square" style="color: var(--danger); width:18px;"></i>`;
+            document.getElementById('dock-action-mic').innerHTML = `<i data-lucide="square" class="w-5 h-5 text-danger"></i>`;
             document.getElementById('dock-action-mic').classList.add('animate__animated', 'animate__flash', 'animate__infinite');
-            pushSystemAlertBubble("Audio recording active... Click square button to stop and transmit.");
+            pushSystemAlertBubble("Voice note recording in progress. Press the red stop block to save and send.");
             lucide.createIcons();
 
         } catch (err) {
@@ -1491,14 +845,12 @@
     function stopRecordingUIState() {
         isCurrentlyRecordingAudio = false;
         const micIcon = document.getElementById('dock-action-mic');
-        micIcon.innerHTML = `<i data-lucide="mic"></i>`;
-        micIcon.className = "dock-action-btn";
+        micIcon.innerHTML = `<i data-lucide="mic" class="w-5 h-5"></i>`;
+        micIcon.className = "dock-action-btn p-2.5 text-text-muted hover:text-text-main hover:bg-gray-200 rounded-full cursor-pointer transition";
         lucide.createIcons();
     }
 
     function sendPayloadAcrossChannel(payloadObj) {
-        if (!activeP2PMessageProtocol || activeP2PMessageProtocol === "CLOUDSYNC") return;
-
         if (activeP2PMessageProtocol instanceof Bugout) {
             activeBugoutInstance.send(payloadObj);
         } else if (activeP2PMessageProtocol.readyState === 'open') {
@@ -1511,7 +863,7 @@
             stopRecordingUIState();
         }
 
-        // Avoid duplicated local display when listing from Realtime database syncs
+        // Avoid duplicated local display in Realtime Sync setups
         if (useCloudSyncFallback && direction === 'outbound' && document.getElementById(packet.id)) {
             return;
         }
@@ -1562,6 +914,7 @@
             bubble.appendChild(bodySpan);
         }
 
+        // Double Click quoted reply setup
         bubble.ondblclick = () => {
             const refText = packet.type === 'MSG' ? packet.body : `[Media Attachment]`;
             activateReplySystem(packet.sender, refText);
@@ -1582,6 +935,7 @@
         lucide.createIcons();
     }
 
+    // --- CONTEXTUAL REPLIES ENGINE ---
     function activateReplySystem(sender, refText) {
         activeReplyContextValue = `"${refText}" - ${sender}`;
         document.getElementById('reply-to-user').innerText = `Replying to ${sender}`;
@@ -1598,26 +952,23 @@
     function pushSystemAlertBubble(alertText) {
         const viewport = document.getElementById('messages-viewport');
         const alertEl = document.createElement('div');
-        alertEl.className = 'system-notification animate__animated animate__fadeIn';
-        alertEl.innerHTML = `<i data-lucide="info" style="width: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> ${alertText}`;
+        alertEl.className = 'system-notification';
+        alertEl.innerText = alertText;
         viewport.appendChild(alertEl);
         viewport.scrollTop = viewport.scrollHeight;
-        lucide.createIcons();
     }
 
     function formatTextMessageToAnchorLinks(textStr) {
         const urlExpression = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-        return textStr.replace(urlExpression, '<a href="$1" target="_blank" style="color: var(--primary); text-decoration: underline;">$1</a>');
+        return textStr.replace(urlExpression, '<a href="$1" target="_blank" style="color: #008069; text-decoration: underline;">$1</a>');
     }
 
-    function copyValueToClipboard(elementId) {
-        const textarea = document.getElementById(elementId);
-        if (!textarea.value) return;
-        
-        textarea.select();
-        textarea.setSelectionRange(0, 99999);
-        document.execCommand('copy');
-        alertCustom("Security Token Copied to Clipboard!");
+    function generateUniqueMessageId() {
+        return 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    }
+
+    function getShortTime() {
+        return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     function alertCustom(message) {
@@ -1635,7 +986,6 @@
         modal.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
         modal.className = 'animate__animated animate__bounceInDown';
         modal.innerText = message;
-        
         document.body.appendChild(modal);
         setTimeout(() => {
             modal.className = 'animate__animated animate__fadeOutUp';
@@ -1643,7 +993,24 @@
         }, 3200);
     }
 
-    // Expose functions globally to maintain standard inline layout actions
+    function activateChatInterface(title, status) {
+        document.getElementById('connection-fallback').style.display = 'none';
+        document.getElementById('header-active-name').innerText = title;
+        document.getElementById('header-active-status').innerText = status;
+        document.getElementById('header-active-indicator').className = "status-pill text-xs font-bold text-green-700 bg-green-100 py-1 px-3 rounded-full";
+        document.getElementById('header-active-indicator').innerText = "Connected";
+    }
+
+    function copyValueToClipboard(elementId) {
+        const textarea = document.getElementById(elementId);
+        if (!textarea.value) return;
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+        alertCustom("Security Token Copied to Clipboard!");
+    }
+
+    // Expose dynamic modules globally inside sandbox
     window.toggleGlobalMode = toggleGlobalMode;
     window.toggleSwarmSubFlow = toggleSwarmSubFlow;
     window.toggleP2PFlow = toggleP2PFlow;
@@ -1659,9 +1026,10 @@
     window.transmitStandardMessage = transmitStandardMessage;
     window.processLocalAttachment = processLocalAttachment;
     window.toggleAudioRecorder = toggleAudioRecorder;
-    window.deactivateReplySystem = deactivateReplySystem;
     window.copyValueToClipboard = copyValueToClipboard;
     window.handleProfileUpdate = handleProfileUpdate;
+    window.deactivateReplySystem = deactivateReplySystem;
+    window.alertCustom = alertCustom;
 </script>
 
 </body>
